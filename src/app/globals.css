@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fbfaff;
+  --foreground: #171717;
+  --brand-start: #7c3aed;
+  --brand-end: #a855f7;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-jakarta: var(--font-jakarta);
+  --font-sans: var(--font-jakarta), Arial, Helvetica, sans-serif;
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-jakarta), Arial, Helvetica, sans-serif;
+}
+
+@layer utilities {
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .glass-panel {
+    @apply bg-white/60 backdrop-blur-2xl border border-white/80 shadow-[0_8px_32px_rgba(31,38,135,0.07)];
+  }
+  .glass-panel-heavy {
+    @apply bg-white/80 backdrop-blur-3xl border border-white shadow-[0_12px_40px_rgba(124,58,237,0.1)];
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-fuchsia-600;
+  }
+  /* Putih + tekstur ungu pastel: dipakai sebagai background utama tiap halaman */
+  .app-bg {
+    background-color: #fbfaff;
+    background-image:
+      radial-gradient(circle at 8% -5%, rgba(168, 85, 247, 0.14), transparent 40%),
+      radial-gradient(circle at 100% 8%, rgba(217, 70, 239, 0.10), transparent 38%),
+      radial-gradient(circle at -5% 65%, rgba(124, 58, 237, 0.08), transparent 42%),
+      radial-gradient(circle at 105% 100%, rgba(168, 85, 247, 0.10), transparent 45%);
+  }
+  .brand-gradient {
+    background-image: linear-gradient(135deg, var(--brand-start), var(--brand-end));
+  }
+}
+
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes menuPop {
+  0% { transform: translateY(15px) scale(0.95); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(124,58,237,0.4); }
+  50% { box-shadow: 0 0 0 15px rgba(124,58,237,0); }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-menu-pop {
+  animation: menuPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2.5s infinite;
+}
