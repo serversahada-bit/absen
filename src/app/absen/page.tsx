@@ -73,7 +73,7 @@ function AbsenContent() {
   }, []); // Only run once on mount
 
   // 3. Ambil Foto & Submit
-  const handleCapture = () => {
+  const handleCapture = async () => {
     if (isCapturing) return;
     if (!isCameraReady) {
       setErrorMsg('Kamera belum siap.');
@@ -111,41 +111,33 @@ function AbsenContent() {
     const imageData = canvas.toDataURL('image/jpeg', 0.8);
 
     setStatusMsg('Mengirim Data Aman...');
+    setErrorMsg('');
 
-    // Buat form untuk post ke /actions/proses_absen.php lama
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/actions/proses_absen.php';
-    form.style.display = 'none';
+    try {
+      const res = await fetch('/api/absen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipe, foto: imageData, lokasi: location }),
+      });
+      const data = await res.json();
 
-    const tipeInput = document.createElement('input');
-    tipeInput.type = 'hidden';
-    tipeInput.name = 'tipe';
-    tipeInput.value = tipe;
+      if (!res.ok || !data.success) {
+        setErrorMsg(data.error || 'Absen gagal, silakan coba lagi.');
+        setStatusMsg('Face ID Siap');
+        setIsCapturing(false);
+        return;
+      }
 
-    const fotoInput = document.createElement('input');
-    fotoInput.type = 'hidden';
-    fotoInput.name = 'foto';
-    fotoInput.value = imageData;
-
-    const lokasiInput = document.createElement('input');
-    lokasiInput.type = 'hidden';
-    lokasiInput.name = 'lokasi';
-    lokasiInput.value = location;
-    
-    // CSRF dummy jika diperlukan oleh PHP lama
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = 'csrf_token';
-    csrfInput.value = 'nextjs_bypass';
-
-    form.appendChild(tipeInput);
-    form.appendChild(fotoInput);
-    form.appendChild(lokasiInput);
-    form.appendChild(csrfInput);
-
-    document.body.appendChild(form);
-    form.submit();
+      setStatusMsg(data.title || 'Absen berhasil');
+      setTimeout(() => {
+        router.push('/dashboard');
+        router.refresh();
+      }, 900);
+    } catch {
+      setErrorMsg('Terjadi masalah koneksi. Silakan coba lagi.');
+      setStatusMsg('Face ID Siap');
+      setIsCapturing(false);
+    }
   };
 
   return (
