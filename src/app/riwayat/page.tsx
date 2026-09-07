@@ -13,9 +13,20 @@ function formatTanggal(tgl: any) {
   if (!tgl || tgl === '0000-00-00') return '-';
   const date = tgl instanceof Date ? tgl : new Date(tgl);
   if (isNaN(date.getTime())) return String(tgl);
-  
+
   const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
   return `${date.getDate()} ${bulan[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+function toDateStr(tgl: any): string {
+  if (!tgl || tgl === '0000-00-00') return '';
+  const date = tgl instanceof Date ? tgl : new Date(tgl);
+  if (isNaN(date.getTime())) return String(tgl);
+
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function formatJam(jam: any) {
@@ -99,6 +110,7 @@ export default async function RiwayatAbsenPage() {
           <div className="space-y-3">
             {rows.map((row, idx) => {
               const tgl = row.tanggal || row.tgl || row.date || '';
+              const tglStr = toDateStr(tgl);
               const jamMasuk = row.jam_masuk || row.jam_in || row.waktu_masuk || '';
               const jamPulang = row.jam_pulang || row.jam_out || row.waktu_pulang || '';
               const status = row.status || row.status_kehadiran || '';
@@ -106,7 +118,7 @@ export default async function RiwayatAbsenPage() {
               return (
                 <Link
                   key={idx}
-                  href={`/riwayat_absen_detail?tanggal=${encodeURIComponent(tgl)}`}
+                  href={`/riwayat_absen_detail?tanggal=${encodeURIComponent(tglStr)}`}
                   className="block bg-white p-4 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex items-start justify-between gap-3 hover:border-violet-100 hover:shadow-violet-500/5 transition-all active:scale-[0.98] group"
                 >
                   <div className="flex items-start gap-3.5">
