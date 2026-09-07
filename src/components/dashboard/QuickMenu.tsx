@@ -18,6 +18,7 @@ import {
 
 interface QuickMenuProps {
   isManager: boolean;
+  canNotifikasi: boolean;
   pendingIzinCount: number;
   pendingLemburCount: number;
 }
@@ -98,21 +99,24 @@ const managerOnlyItems = [
     bgColor: 'bg-cyan-50',
     href: '/aproval_lembur',
   },
-  {
-    id: 'notifikasi',
-    label: 'Notifikasi',
-    icon: Bell,
-    iconColor: 'text-amber-500',
-    bgColor: 'bg-amber-50',
-    href: '/notifikasi',
-  },
 ];
 
-export default function QuickMenu({ isManager, pendingIzinCount, pendingLemburCount }: QuickMenuProps) {
+const notifikasiItem = {
+  id: 'notifikasi',
+  label: 'Notifikasi',
+  icon: Bell,
+  iconColor: 'text-amber-500',
+  bgColor: 'bg-amber-50',
+  href: '/notifikasi',
+};
+
+export default function QuickMenu({ isManager, canNotifikasi, pendingIzinCount, pendingLemburCount }: QuickMenuProps) {
   const openModal = useNavModal();
-  const menuItems = isManager
-    ? [...baseMenuItems, ...managerOnlyItems]
-    : baseMenuItems;
+  const menuItems = [
+    ...baseMenuItems,
+    ...(isManager ? managerOnlyItems : []),
+    ...(canNotifikasi ? [notifikasiItem] : []),
+  ];
 
   const isExternal = (href: string) => href.startsWith('http://') || href.startsWith('https://');
 

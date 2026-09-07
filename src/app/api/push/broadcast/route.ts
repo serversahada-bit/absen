@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
-import { isManagerRole } from '@/lib/roles';
+import { isNotifikasiAdminRole } from '@/lib/roles';
 import { sendPushBroadcast } from '@/lib/push';
 
 export async function POST(request: Request) {
@@ -10,9 +10,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: 'Sesi tidak valid.' }, { status: 401 });
   }
 
-  const meRows: any = await query('SELECT peran, jabatan FROM karyawan WHERE id = ? LIMIT 1', [session.user_id]);
+  const meRows: any = await query('SELECT jabatan FROM karyawan WHERE id = ? LIMIT 1', [session.user_id]);
   const me = meRows?.[0];
-  if (!me || !isManagerRole(me.peran, me.jabatan)) {
+  if (!me || !isNotifikasiAdminRole(me.jabatan)) {
     return NextResponse.json({ success: false, error: 'Anda tidak memiliki akses.' }, { status: 403 });
   }
 

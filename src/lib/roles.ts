@@ -8,3 +8,8 @@ export function isManagerRole(peran?: string | null, jabatan?: string | null): b
     jabatanLower.includes('supervisor')
   );
 }
+
+/** Akses fitur kirim notifikasi broadcast dibatasi khusus jabatan ini. */
+export function isNotifikasiAdminRole(jabatan?: string | null): boolean {
+  return (jabatan || '').trim().toLowerCase() === 'koordinator it spesialis';
+}

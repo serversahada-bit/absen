@@ -2,7 +2,7 @@ import React from 'react';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
-import { isManagerRole } from '@/lib/roles';
+import { isNotifikasiAdminRole } from '@/lib/roles';
 import AppShell from '@/components/AppShell';
 import BackLink from '@/components/BackLink';
 import { ArrowLeft } from 'lucide-react';
@@ -16,11 +16,10 @@ export default async function NotifikasiPage() {
     redirect('/');
   }
 
-  const meRows: any = await query('SELECT peran, jabatan FROM karyawan WHERE id = ? LIMIT 1', [session.user_id]);
+  const meRows: any = await query('SELECT jabatan FROM karyawan WHERE id = ? LIMIT 1', [session.user_id]);
   const me = meRows?.[0] || {};
-  const isLeader = isManagerRole(me.peran, me.jabatan);
 
-  if (!isLeader) {
+  if (!isNotifikasiAdminRole(me.jabatan)) {
     redirect('/dashboard');
   }
 
