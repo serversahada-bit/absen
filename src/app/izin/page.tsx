@@ -8,7 +8,7 @@ import BackLink from '@/components/BackLink';
 
 export default function PengajuanIzinPage() {
   const router = useRouter();
-  
+
   const [activeTab, setActiveTab] = useState('sakit');
   const [bukti1Url, setBukti1Url] = useState<string | null>(null);
   const [bukti2Url, setBukti2Url] = useState<string | null>(null);
@@ -17,6 +17,7 @@ export default function PengajuanIzinPage() {
 
   const [statusParam, setStatusParam] = useState('');
   const [msgParam, setMsgParam] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // Read query params for status
@@ -24,6 +25,44 @@ export default function PengajuanIzinPage() {
     if (params.get('status')) setStatusParam(params.get('status')!);
     if (params.get('msg')) setMsgParam(params.get('msg')!);
   }, []);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    setStatusParam('');
+    setMsgParam('');
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      const res = await fetch('/api/izin', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setStatusParam('error');
+        setMsgParam(data.error || 'Terjadi kesalahan saat mengirim pengajuan.');
+        return;
+      }
+
+      setStatusParam('success');
+      setMsgParam(data.message || 'Pengajuan izin berhasil dikirim.');
+      e.currentTarget.reset();
+      setBukti1Url(null);
+      setBukti2Url(null);
+      setBukti1Name('');
+      setBukti2Name('');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      setStatusParam('error');
+      setMsgParam('Terjadi masalah koneksi. Silakan coba lagi.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
     const file = e.target.files?.[0];
@@ -155,7 +194,7 @@ export default function PengajuanIzinPage() {
         </div>
 
         {/* FORM */}
-        <form action="/actions/proses_izin.php" method="POST" encType="multipart/form-data" className="bg-white p-6 rounded-[32px] shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 space-y-6">
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-[32px] shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 space-y-6">
           
           <input type="hidden" name="tipe" value={inputValue} />
 
@@ -285,9 +324,9 @@ export default function PengajuanIzinPage() {
             </div>
           )}
 
-          <button type="submit"
-            className="w-full mt-4 py-4 rounded-[20px] bg-rose-600 text-white font-black tracking-widest text-[14px] shadow-[0_8px_20px_rgba(225,29,72,0.3)] active:scale-[0.98] hover:bg-rose-700 transition-all flex items-center justify-center gap-2">
-            KIRIM PENGAJUAN
+          <button type="submit" disabled={isSubmitting}
+            className="w-full mt-4 py-4 rounded-[20px] bg-rose-600 text-white font-black tracking-widest text-[14px] shadow-[0_8px_20px_rgba(225,29,72,0.3)] active:scale-[0.98] hover:bg-rose-700 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+            {isSubmitting ? 'MENGIRIM...' : 'KIRIM PENGAJUAN'}
           </button>
         </form>
       </div>
