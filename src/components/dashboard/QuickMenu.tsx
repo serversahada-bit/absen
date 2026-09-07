@@ -12,7 +12,8 @@ import {
   Users, 
   BookOpen,
   CheckSquare,
-  Clock
+  Clock,
+  Bell
 } from 'lucide-react';
 
 interface QuickMenuProps {
@@ -96,6 +97,14 @@ const managerOnlyItems = [
     iconColor: 'text-cyan-500',
     bgColor: 'bg-cyan-50',
     href: '/aproval_lembur',
+  },
+  {
+    id: 'notifikasi',
+    label: 'Notifikasi',
+    icon: Bell,
+    iconColor: 'text-amber-500',
+    bgColor: 'bg-amber-50',
+    href: '/notifikasi',
   },
 ];
 

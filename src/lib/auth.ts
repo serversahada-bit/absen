@@ -55,12 +55,11 @@ export async function verifyPasswordMigration(input: string, stored: string): Pr
 /**
  * Buat JWT Session Token
  */
-export async function createSessionToken(user: UserSession, remember: boolean): Promise<string> {
-  const expiration = remember ? '30d' : '1d';
+export async function createSessionToken(user: UserSession): Promise<string> {
   return await new SignJWT({ ...user })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime(expiration)
+    .setExpirationTime('30d')
     .sign(JWT_SECRET);
 }
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
+import { sendPushToKaryawan } from '@/lib/push';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
@@ -142,7 +143,7 @@ export async function POST(request: Request) {
   const namaKaryawan = userRows?.[0]?.nama || 'Karyawan';
 
   const managerRows: any = await query(
-    `SELECT m.email_login, m.email, m.nama
+    `SELECT m.id, m.email_login, m.email, m.nama
      FROM tim_saya ts
      JOIN karyawan m ON ts.manager_id = m.id
      WHERE ts.anggota_id = ?
@@ -172,6 +173,14 @@ export async function POST(request: Request) {
     managerEmail,
     managerNama,
   });
+
+  if (managerRow?.id) {
+    await sendPushToKaryawan(managerRow.id, {
+      title: 'Pengajuan Lembur Baru',
+      body: `${namaKaryawan} mengajukan lembur ${menitToJamMenit(durasiMenit)} pada ${tanggal}`,
+      url: '/aproval_lembur',
+    });
+  }
 
   return NextResponse.json({ success: true, message: 'Pengajuan lembur berhasil dikirim.' });
 }

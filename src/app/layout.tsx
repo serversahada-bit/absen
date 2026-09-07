@@ -11,9 +11,6 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: 'Dashboard - Great HRD System',
   description: 'Sistem Informasi HRD Modern',
-  icons: {
-    icon: '/logo.webp',
-  },
 };
 
 export default function RootLayout({

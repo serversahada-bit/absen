@@ -8,7 +8,6 @@ export async function POST(request: Request) {
     const body = await request.json();
     const identifier = (body.identifier || '').trim();
     const passwordInput = String(body.password || '');
-    const remember = Boolean(body.remember);
 
     // 1. Validasi input kosong
     if (!identifier || !passwordInput) {
@@ -87,18 +86,16 @@ export async function POST(request: Request) {
       email: row.email || '',
     };
 
-    // Buat JWT Token & Simpan Cookie
-    const token = await createSessionToken(userPayload, remember);
+    // Buat JWT Token & Simpan Cookie (selalu berlaku 30 hari)
+    const token = await createSessionToken(userPayload);
     const cookieStore = await cookies();
-
-    const maxAge = remember ? 30 * 24 * 60 * 60 : undefined; // 30 hari jika remember me
 
     cookieStore.set('session_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge,
+      maxAge: 30 * 24 * 60 * 60,
     });
 
     return NextResponse.json({
