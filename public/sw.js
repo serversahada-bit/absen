@@ -13,6 +13,9 @@ self.addEventListener('push', function (event) {
     badge: '/icon.png',
     data: { url: data.url || '/dashboard' },
   };
+  if (data.image) {
+    options.image = data.image;
+  }
 
   event.waitUntil(self.registration.showNotification(title, options));
 });

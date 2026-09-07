@@ -20,12 +20,13 @@ export async function POST(request: Request) {
   const title = String(body.title || '').trim();
   const messageBody = String(body.body || '').trim();
   const url = body.url ? String(body.url).trim() : undefined;
+  const image = body.image ? String(body.image).trim() : undefined;
 
   if (!title || !messageBody) {
     return NextResponse.json({ success: false, error: 'Judul dan isi pesan wajib diisi.' }, { status: 400 });
   }
 
-  const sent = await sendPushBroadcast({ title, body: messageBody, url });
+  const sent = await sendPushBroadcast({ title, body: messageBody, url, image });
 
   return NextResponse.json({ success: true, sent });
 }

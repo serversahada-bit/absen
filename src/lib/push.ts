@@ -19,6 +19,7 @@ export interface PushPayload {
   title: string;
   body: string;
   url?: string;
+  image?: string;
 }
 
 interface PushSubscriptionRow {
