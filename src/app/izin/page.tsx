@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Stethoscope, CalendarDays, CalendarClock, Clock, UploadCloud, CheckCircle2, AlertCircle, FileText, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Stethoscope, CalendarDays, CalendarClock, Clock, UploadCloud, CheckCircle2, AlertCircle, FileText, Image as ImageIcon, Loader2 } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import BackLink from '@/components/BackLink';
 
@@ -326,7 +326,14 @@ export default function PengajuanIzinPage() {
 
           <button type="submit" disabled={isSubmitting}
             className="w-full mt-4 py-4 rounded-[20px] bg-rose-600 text-white font-black tracking-widest text-[14px] shadow-[0_8px_20px_rgba(225,29,72,0.3)] active:scale-[0.98] hover:bg-rose-700 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
-            {isSubmitting ? 'MENGIRIM...' : 'KIRIM PENGAJUAN'}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                MENGIRIM...
+              </>
+            ) : (
+              'KIRIM PENGAJUAN'
+            )}
           </button>
         </form>
       </div>
