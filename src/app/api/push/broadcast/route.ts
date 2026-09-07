@@ -25,10 +25,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: 'Judul dan isi pesan wajib diisi.' }, { status: 400 });
   }
 
-  const countRows: any = await query('SELECT COUNT(*) AS total FROM push_subscriptions');
-  const sent = countRows?.[0]?.total || 0;
-
-  await sendPushBroadcast({ title, body: messageBody, url });
+  const sent = await sendPushBroadcast({ title, body: messageBody, url });
 
   return NextResponse.json({ success: true, sent });
 }

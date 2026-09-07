@@ -19,6 +19,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 export default function PushNotificationPrompt() {
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const supported = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window;
@@ -32,6 +33,7 @@ export default function PushNotificationPrompt() {
 
   const handleEnable = async () => {
     setLoading(true);
+    setError('');
     try {
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
@@ -49,16 +51,21 @@ export default function PushNotificationPrompt() {
         applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
       });
 
-      await fetch('/api/push/subscribe', {
+      const res = await fetch('/api/push/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subscription }),
       });
 
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Gagal menyimpan subscription ke server.');
+      }
+
       setVisible(false);
-    } catch (error) {
-      console.error('[Push] Gagal mengaktifkan notifikasi:', error);
-      setVisible(false);
+    } catch (err: any) {
+      console.error('[Push] Gagal mengaktifkan notifikasi:', err);
+      setError(err.message || 'Gagal mengaktifkan notifikasi. Coba lagi.');
     } finally {
       setLoading(false);
     }
@@ -81,6 +88,7 @@ export default function PushNotificationPrompt() {
         <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
           Dapatkan notifikasi untuk approval izin/lembur dan pengumuman dari HRD.
         </p>
+        {error && <p className="text-xs text-red-600 font-medium mt-1.5">{error}</p>}
         <div className="flex items-center gap-2 mt-3">
           <button
             onClick={handleEnable}

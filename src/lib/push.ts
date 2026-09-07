@@ -28,36 +28,40 @@ interface PushSubscriptionRow {
   auth: string;
 }
 
-async function sendToSubscription(sub: PushSubscriptionRow, payload: PushPayload) {
+async function sendToSubscription(sub: PushSubscriptionRow, payload: PushPayload): Promise<boolean> {
   try {
     await webpush.sendNotification(
       { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
       JSON.stringify(payload)
     );
+    return true;
   } catch (error: any) {
     if (error.statusCode === 404 || error.statusCode === 410) {
-      await query('DELETE FROM push_subscriptions WHERE id = ?', [sub.id]);
+      await query('DELETE FROM hc_push_subscriptions WHERE id = ?', [sub.id]);
     } else {
       console.error('[Push] Gagal kirim notifikasi:', error.message || error);
     }
+    return false;
   }
 }
 
-export async function sendPushToKaryawan(karyawanId: number, payload: PushPayload) {
-  if (!vapidConfigured) return;
+export async function sendPushToKaryawan(karyawanId: number, payload: PushPayload): Promise<number> {
+  if (!vapidConfigured) return 0;
 
   const subs: PushSubscriptionRow[] = await query(
-    'SELECT id, endpoint, p256dh, auth FROM push_subscriptions WHERE karyawan_id = ?',
+    'SELECT id, endpoint, p256dh, auth FROM hc_push_subscriptions WHERE karyawan_id = ?',
     [karyawanId]
   );
-  await Promise.all(subs.map((sub) => sendToSubscription(sub, payload)));
+  const results = await Promise.all(subs.map((sub) => sendToSubscription(sub, payload)));
+  return results.filter(Boolean).length;
 }
 
-export async function sendPushBroadcast(payload: PushPayload) {
-  if (!vapidConfigured) return;
+export async function sendPushBroadcast(payload: PushPayload): Promise<number> {
+  if (!vapidConfigured) return 0;
 
   const subs: PushSubscriptionRow[] = await query(
-    'SELECT id, endpoint, p256dh, auth FROM push_subscriptions'
+    'SELECT id, endpoint, p256dh, auth FROM hc_push_subscriptions'
   );
-  await Promise.all(subs.map((sub) => sendToSubscription(sub, payload)));
+  const results = await Promise.all(subs.map((sub) => sendToSubscription(sub, payload)));
+  return results.filter(Boolean).length;
 }
