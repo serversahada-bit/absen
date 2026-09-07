@@ -72,7 +72,7 @@ export default function PushNotificationPrompt() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-5 right-5 left-5 md:left-auto z-50 max-w-sm rounded-2xl bg-white border border-slate-200 shadow-xl p-4 flex items-start gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed top-5 right-5 left-5 lg:left-auto z-50 max-w-sm rounded-2xl bg-white border border-slate-200 shadow-xl p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
       <div className="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center shrink-0">
         <Bell className="w-5 h-5" />
       </div>
