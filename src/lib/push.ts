@@ -49,20 +49,32 @@ async function sendToSubscription(sub: PushSubscriptionRow, payload: PushPayload
 export async function sendPushToKaryawan(karyawanId: number, payload: PushPayload): Promise<number> {
   if (!vapidConfigured) return 0;
 
-  const subs: PushSubscriptionRow[] = await query(
-    'SELECT id, endpoint, p256dh, auth FROM hc_push_subscriptions WHERE karyawan_id = ?',
-    [karyawanId]
-  );
-  const results = await Promise.all(subs.map((sub) => sendToSubscription(sub, payload)));
-  return results.filter(Boolean).length;
+  try {
+    const subs: PushSubscriptionRow[] = await query(
+      'SELECT id, endpoint, p256dh, auth FROM hc_push_subscriptions WHERE karyawan_id = ?',
+      [karyawanId]
+    );
+    const results = await Promise.all(subs.map((sub) => sendToSubscription(sub, payload)));
+    return results.filter(Boolean).length;
+  } catch (error: any) {
+    // Notifikasi push adalah efek samping, bukan inti aksi (izin/lembur) —
+    // jangan sampai kegagalan di sini menggagalkan seluruh request pemanggil.
+    console.error('[Push] sendPushToKaryawan gagal:', error.message || error);
+    return 0;
+  }
 }
 
 export async function sendPushBroadcast(payload: PushPayload): Promise<number> {
   if (!vapidConfigured) return 0;
 
-  const subs: PushSubscriptionRow[] = await query(
-    'SELECT id, endpoint, p256dh, auth FROM hc_push_subscriptions'
-  );
-  const results = await Promise.all(subs.map((sub) => sendToSubscription(sub, payload)));
-  return results.filter(Boolean).length;
+  try {
+    const subs: PushSubscriptionRow[] = await query(
+      'SELECT id, endpoint, p256dh, auth FROM hc_push_subscriptions'
+    );
+    const results = await Promise.all(subs.map((sub) => sendToSubscription(sub, payload)));
+    return results.filter(Boolean).length;
+  } catch (error: any) {
+    console.error('[Push] sendPushBroadcast gagal:', error.message || error);
+    return 0;
+  }
 }

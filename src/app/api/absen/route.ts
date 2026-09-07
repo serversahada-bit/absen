@@ -27,7 +27,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: 'Sesi tidak valid, silakan login ulang.' }, { status: 401 });
   }
 
-  const userId = session.user_id;
+  try {
+    return await handleSubmit(request, session.user_id);
+  } catch (error: any) {
+    console.error('[Absen] Gagal memproses absen:', error);
+    return NextResponse.json(
+      { success: false, error: 'Terjadi kesalahan di server. Silakan coba lagi.' },
+      { status: 500 }
+    );
+  }
+}
+
+async function handleSubmit(request: Request, userId: number) {
   const body = await request.json().catch(() => ({}));
 
   const tipe: 'masuk' | 'pulang' = body.tipe === 'pulang' ? 'pulang' : 'masuk';
