@@ -4,7 +4,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
-import { format } from 'date-fns';
+import { nowJakarta, formatJakartaDate, formatJakartaTime, formatJakartaCompact } from '@/lib/time';
 
 const MAX_BYTES = 2 * 1024 * 1024;
 
@@ -52,8 +52,9 @@ export async function POST(request: Request) {
   const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'presensi');
   await fs.mkdir(uploadDir, { recursive: true });
 
+  const nowWib = nowJakarta();
   const rand = crypto.randomBytes(4).toString('hex');
-  const timestamp = format(new Date(), 'yyyyMMdd_HHmmss');
+  const timestamp = formatJakartaCompact(nowWib);
   const filename = `absen_${userId}_${timestamp}_${rand}.${decoded.ext}`;
   const fileAbs = path.join(uploadDir, filename);
   const fileRel = `uploads/presensi/${filename}`;
@@ -64,8 +65,8 @@ export async function POST(request: Request) {
   const kRows: any = await query('SELECT jam_jadwal_masuk FROM karyawan WHERE id = ? LIMIT 1', [userId]);
   const jamJadwalMasuk = kRows?.[0]?.jam_jadwal_masuk || '08:00:00';
 
-  const tanggal = format(new Date(), 'yyyy-MM-dd');
-  const jamNow = format(new Date(), 'HH:mm:ss');
+  const tanggal = formatJakartaDate(nowWib);
+  const jamNow = formatJakartaTime(nowWib);
 
   const presRows: any = await query(
     'SELECT jam_masuk, jam_pulang FROM presensi WHERE karyawan_id = ? AND tanggal = ? LIMIT 1',
@@ -80,10 +81,10 @@ export async function POST(request: Request) {
     }
 
     const [jh, jm, js] = jamJadwalMasuk.split(':').map(Number);
-    const limitTelat = new Date(`${tanggal}T00:00:00`);
-    limitTelat.setHours(jh, jm + 1, js || 0, 0);
-    const now = new Date(`${tanggal}T${jamNow}`);
-    const statusMasuk = now >= limitTelat ? 'Terlambat' : 'Tepat Waktu';
+    const limitTelatDetik = jh * 3600 + jm * 60 + (js || 0) + 60; // +1 menit toleransi
+    const [nh, nm, ns] = jamNow.split(':').map(Number);
+    const nowDetik = nh * 3600 + nm * 60 + ns;
+    const statusMasuk = nowDetik >= limitTelatDetik ? 'Terlambat' : 'Tepat Waktu';
 
     await query(
       `INSERT INTO presensi (karyawan_id, tanggal, jam_masuk, lokasi_masuk, foto_masuk, status)

@@ -10,8 +10,9 @@ import DigitalClock from '@/components/dashboard/DigitalClock';
 import QuickMenu from '@/components/dashboard/QuickMenu';
 import Timeline from '@/components/dashboard/Timeline';
 import { Building2, ArrowUpRight } from 'lucide-react';
-import { format, subDays, addDays } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { nowJakarta, formatJakartaDate, jakartaDayOfWeek, jakartaSubDaysString, jakartaMonthDaySubDays } from '@/lib/time';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,8 +40,10 @@ export default async function DashboardPage() {
 
   const isManager = isManagerRole(userData.peran, userData.jabatan);
 
+  const nowWib = nowJakarta();
+
   // 2. JADWAL SHIFT
-  const dow = new Date().getDay(); // 0 = Sunday, 1 = Monday, ... 6 = Saturday
+  const dow = jakartaDayOfWeek(nowWib); // 0 = Sunday, 1 = Monday, ... 6 = Saturday
   let shiftLabel = 'Minggu';
   let shiftMasuk = '08:00';
   let shiftPulang = '16:15';
@@ -63,7 +66,7 @@ export default async function DashboardPage() {
   };
 
   // 3. CEK PRESENSI
-  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const todayStr = formatJakartaDate(nowWib);
   const absenRows: any = await query('SELECT jam_masuk, jam_pulang, status FROM presensi WHERE karyawan_id = ? AND tanggal = ? LIMIT 1', [userId, todayStr]);
   const dataAbsen = absenRows && absenRows.length > 0 ? absenRows[0] : null;
 
@@ -119,20 +122,20 @@ export default async function DashboardPage() {
   // 5. TIMELINE (6 Hari Kebelakang)
   const timelineByDate: Record<string, any[]> = {};
   for (let i = 0; i < 6; i++) {
-    const d = format(subDays(new Date(), i), 'yyyy-MM-dd');
+    const d = jakartaSubDaysString(i, nowWib);
     timelineByDate[d] = [];
   }
 
   // Ultah Timeline
   const ultahRows: any = await query(`SELECT id, nama, tanggal_lahir FROM karyawan WHERE status_karyawan != 'Non-Aktif' AND tanggal_lahir IS NOT NULL AND tanggal_lahir != '0000-00-00'`);
-  
+
   if (ultahRows) {
     ultahRows.forEach((row: any) => {
       const birth = new Date(row.tanggal_lahir);
       for (let i = 0; i < 6; i++) {
-        const targetDate = subDays(new Date(), i);
-        if (targetDate.getMonth() === birth.getMonth() && targetDate.getDate() === birth.getDate()) {
-          const dStr = format(targetDate, 'yyyy-MM-dd');
+        const { month: targetMonth, day: targetDay } = jakartaMonthDaySubDays(i, nowWib);
+        if (targetMonth === birth.getMonth() + 1 && targetDay === birth.getDate()) {
+          const dStr = jakartaSubDaysString(i, nowWib);
           if (timelineByDate[dStr]) {
             timelineByDate[dStr].push({
               id: 'ultah_' + row.id,
