@@ -2,12 +2,14 @@ import React from 'react';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
+import { isManagerRole } from '@/lib/roles';
 import TopBar from '@/components/dashboard/TopBar';
 import CalendarStrip from '@/components/dashboard/CalendarStrip';
 import StatusCards from '@/components/dashboard/StatusCards';
 import DigitalClock from '@/components/dashboard/DigitalClock';
 import QuickMenu from '@/components/dashboard/QuickMenu';
 import Timeline from '@/components/dashboard/Timeline';
+import { Building2, ArrowUpRight } from 'lucide-react';
 import { format, subDays, addDays } from 'date-fns';
 import { id } from 'date-fns/locale';
 
@@ -35,12 +37,7 @@ export default async function DashboardPage() {
     photoUrl: userData.foto ? `/uploads/${userData.foto}` : undefined,
   };
 
-  const jabLower = (userData.jabatan || '').toLowerCase();
-  const peranUser = (userData.peran || '').toLowerCase();
-  const isManager = ['manager', 'spv', 'supervisor'].includes(peranUser) ||
-                    jabLower.includes('manager') ||
-                    jabLower.includes('spv') ||
-                    jabLower.includes('supervisor');
+  const isManager = isManagerRole(userData.peran, userData.jabatan);
 
   // 2. JADWAL SHIFT
   const dow = new Date().getDay(); // 0 = Sunday, 1 = Monday, ... 6 = Saturday
@@ -127,7 +124,7 @@ export default async function DashboardPage() {
   }
 
   // Ultah Timeline
-  const ultahRows: any = await query(`SELECT id, nama, tanggal_lahir FROM karyawan WHERE status_karyawan = 'Aktif' AND tanggal_lahir IS NOT NULL AND tanggal_lahir != '0000-00-00'`);
+  const ultahRows: any = await query(`SELECT id, nama, tanggal_lahir FROM karyawan WHERE status_karyawan != 'Non-Aktif' AND tanggal_lahir IS NOT NULL AND tanggal_lahir != '0000-00-00'`);
   
   if (ultahRows) {
     ultahRows.forEach((row: any) => {
@@ -153,9 +150,10 @@ export default async function DashboardPage() {
   const approvedIzinRows: any = await query(`
     SELECT i.id, i.mulai_tanggal, i.sampai_tanggal, i.tipe_izin, k.nama 
     FROM pengajuan_izin i 
-    JOIN karyawan k ON k.id = i.karyawan_id 
+    JOIN karyawan k ON k.id = i.karyawan_id
     WHERE (i.status = 'Disetujui' OR i.manager_status = 'Disetujui')
       AND i.sampai_tanggal >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+      AND k.status_karyawan != 'Non-Aktif'
   `);
 
   if (approvedIzinRows) {
@@ -184,9 +182,10 @@ export default async function DashboardPage() {
     const teamIzinRows: any = await query(`
       SELECT i.id, i.mulai_tanggal, i.sampai_tanggal, i.tipe_izin, k.nama 
       FROM pengajuan_izin i 
-      JOIN tim_saya ts ON ts.anggota_id = i.karyawan_id 
-      JOIN karyawan k ON k.id = i.karyawan_id 
+      JOIN tim_saya ts ON ts.anggota_id = i.karyawan_id
+      JOIN karyawan k ON k.id = i.karyawan_id
       WHERE ts.manager_id = ? AND i.manager_status = 'Pending'
+        AND k.status_karyawan != 'Non-Aktif'
     `, [userId]);
 
     if (teamIzinRows) {
@@ -257,6 +256,27 @@ export default async function DashboardPage() {
             pendingIzinCount={pendingIzinCount}
             pendingLemburCount={pendingLemburCount}
           />
+
+          <a
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden lg:flex items-center justify-between gap-3 bg-gradient-to-br from-violet-600 to-purple-600 rounded-[24px] p-5 shadow-[0_10px_30px_rgba(124,58,237,0.25)] hover:shadow-[0_14px_36px_rgba(124,58,237,0.35)] transition-all duration-300 group"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center shrink-0">
+                <Building2 className="w-5 h-5 text-white" strokeWidth={2} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[13px] font-black text-white leading-tight truncate">Masuk ke ERP</p>
+                <p className="text-[10px] font-semibold text-violet-200 mt-0.5">Sistem ERP Perusahaan</p>
+              </div>
+            </div>
+            <ArrowUpRight
+              className="w-4 h-4 text-violet-200 shrink-0 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200"
+              strokeWidth={2.5}
+            />
+          </a>
         </div>
 
         <div className="lg:col-start-1 lg:row-start-3">

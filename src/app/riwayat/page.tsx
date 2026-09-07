@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { ArrowLeft, Clock, History, ChevronRight } from 'lucide-react';
 import AppShell from '@/components/AppShell';
+import BackLink from '@/components/BackLink';
 
 export const dynamic = 'force-dynamic';
 
@@ -74,12 +75,14 @@ export default async function RiwayatAbsenPage() {
       
       {/* HEADER */}
       <div className="bg-white/80 backdrop-blur-xl px-5 py-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex items-center gap-4 sticky top-0 z-40 border-b border-slate-100">
-        <Link 
-          href="/dashboard"
-          className="p-2 bg-slate-50 rounded-full hover:bg-slate-100 transition active:scale-95 text-slate-500 border border-slate-100"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
+        <BackLink>
+          <Link
+            href="/dashboard"
+            className="p-2 bg-slate-50 rounded-full hover:bg-slate-100 transition active:scale-95 text-slate-500 border border-slate-100"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+        </BackLink>
         <h1 className="font-black text-[17px] text-slate-900 tracking-tight">Riwayat Absen</h1>
       </div>
 

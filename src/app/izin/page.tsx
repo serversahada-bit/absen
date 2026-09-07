@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Stethoscope, CalendarDays, CalendarClock, Clock, UploadCloud, CheckCircle2, AlertCircle, FileText, Image as ImageIcon } from 'lucide-react';
 import AppShell from '@/components/AppShell';
+import BackLink from '@/components/BackLink';
 
 export default function PengajuanIzinPage() {
   const router = useRouter();
@@ -90,12 +91,14 @@ export default function PengajuanIzinPage() {
       {/* HEADER */}
       <div className="bg-white/80 backdrop-blur-xl px-5 py-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex items-center justify-between sticky top-0 z-40 border-b border-slate-100">
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => router.push('/riwayat_izin')}
-            className="p-2 bg-slate-50 rounded-full hover:bg-slate-100 transition active:scale-95 text-slate-500 border border-slate-100"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+          <BackLink>
+            <button
+              onClick={() => router.push('/riwayat_izin')}
+              className="p-2 bg-slate-50 rounded-full hover:bg-slate-100 transition active:scale-95 text-slate-500 border border-slate-100"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          </BackLink>
           <h1 className="font-black text-[17px] text-slate-900 tracking-tight">Pengajuan Izin</h1>
         </div>
       </div>

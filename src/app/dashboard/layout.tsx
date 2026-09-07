@@ -7,7 +7,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AppShell maxWidth="lg:max-w-[1400px]">
+    <AppShell maxWidth="lg:max-w-none">
       {children}
     </AppShell>
   );

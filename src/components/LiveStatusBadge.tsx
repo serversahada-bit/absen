@@ -23,7 +23,7 @@ export default function LiveStatusBadge() {
 
   return (
     <div
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-violet-50 border border-violet-100 cursor-default select-none"
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 cursor-default select-none"
       title={isOnline ? 'Sistem Online' : 'Tidak ada koneksi'}
     >
       <span className="relative flex h-1.5 w-1.5">

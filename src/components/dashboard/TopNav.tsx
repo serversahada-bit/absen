@@ -23,7 +23,7 @@ export default function TopNav() {
 
   return (
     <header className="hidden lg:block sticky top-0 z-40 w-full bg-white/90 backdrop-blur-xl border-b border-violet-100">
-      <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-6 px-8 h-[72px]">
+      <div className="w-full flex items-center justify-between gap-6 px-8 h-[72px]">
         {/* Logo */}
         <div className="flex items-center gap-3 shrink-0">
           <div className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center bg-white shadow-sm border border-violet-100">

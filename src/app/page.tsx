@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import LiveStatusBadge from '@/components/LiveStatusBadge';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,45 +43,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full app-bg text-slate-900 flex items-center justify-center font-poppins selection:bg-violet-500/30 py-6 md:py-0">
-      {/* Background abstract gradients */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-violet-500/10 blur-[120px] mix-blend-multiply" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-fuchsia-400/10 blur-[120px] mix-blend-multiply" />
-      </div>
+    <div className="min-h-screen w-full bg-slate-50 text-slate-900 flex items-center justify-center font-poppins selection:bg-violet-500/30 py-6">
+      <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white border border-slate-200 shadow-xl shadow-slate-200/50 mx-4 p-6 md:p-10">
 
-      <div className="relative z-10 flex w-full max-w-6xl overflow-hidden rounded-[2rem] md:rounded-[2rem] bg-white border border-slate-200 shadow-2xl shadow-slate-200/50 mx-4 my-0 md:my-8 md:min-h-[600px]">
-        
-        {/* LEFT: FORM SECTION */}
-        <div className="flex w-full flex-col justify-center px-6 py-6 md:w-1/2 md:px-8 md:py-12 lg:px-16 relative">
-
-          <div className="w-full max-w-sm mx-auto">
-            {/* Header: Logo and Live Status Indicator */}
-            <div className="flex items-center justify-between mb-5 md:mb-10">
-              {/* Logo Area */}
-              <div className="flex items-center gap-3 font-semibold tracking-wide text-slate-900">
-                <Image
-                  src="/sasdw.png"
-                  alt="Company Logo"
-                  width={40}
-                  height={40}
-                  className="object-contain rounded-lg"
-                />
-                <span className="text-xl">GreatHR</span>
-              </div>
-
-              {/* Realtime Live Status Badge */}
-              <LiveStatusBadge />
-            </div>
-
-            <div className="mb-5 md:mb-10 text-center md:text-left">
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-2 md:text-4xl">
-                Welcome Back
-              </h1>
-              <p className="text-sm text-slate-500 font-medium">
-                Masuk untuk mengakses Absensi, Slip Gaji, dan Pengajuan Izin.
-              </p>
-            </div>
+        <div className="w-full">
+          {/* Logo Area */}
+          <div className="flex flex-col items-center gap-3 mb-8">
+            <Image
+              src="/sasdw.png"
+              alt="Company Logo"
+              width={48}
+              height={48}
+              className="object-contain rounded-lg"
+            />
+            <span className="text-lg font-semibold tracking-wide text-slate-900">Great HRD</span>
+          </div>
 
             {/* ERROR ALERT */}
             {error && (
@@ -222,43 +197,12 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <footer className="mt-6 md:mt-12 text-center md:text-left text-xs font-medium text-slate-400">
-              &copy; {new Date().getFullYear()} Great HRD System. All rights reserved.
-            </footer>
-          </div>
-        </div>
-
-        {/* RIGHT: IMAGE SECTION (Hidden on mobile) */}
-        <div className="relative hidden w-1/2 md:block overflow-hidden bg-slate-100">
-          {/* Subtle overlay gradient to blend image with theme */}
-          <div className="absolute inset-0 z-10 bg-gradient-to-l from-transparent via-transparent to-white/40"></div>
-          
-          <Image
-            src="/assets/pak_ceo.webp"
-            alt="Hero CEO"
-            fill
-            priority
-            className="object-cover object-[center_20%] scale-[1.02] transition-transform duration-1000 hover:scale-105"
-            sizes="(max-width: 768px) 0vw, 50vw"
-          />
-          
-          {/* Decorative elements over image */}
-          <div className="absolute bottom-12 right-12 z-20 max-w-sm rounded-2xl bg-white/90 backdrop-blur-md border border-white/50 p-6 shadow-xl">
-            <div className="flex items-center gap-4 mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-100 text-violet-600">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-slate-900 font-semibold">HR Excellence</h3>
-            </div>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              &quot;Membangun tim yang solid dan profesional untuk masa depan yang lebih baik.&quot;
-            </p>
-          </div>
+          <p className="mt-8 text-center text-xs font-medium text-slate-400">
+            &copy; {new Date().getFullYear()} Great HRD System
+          </p>
         </div>
       </div>
-      
+
       {/* Custom Keyframes for Animations */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes shimmer {

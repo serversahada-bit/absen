@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { submitMengajiAction, submitIzinAction, clearIzinAction } from './actions';
 import { ArrowLeft, BookOpen, AlertCircle, CheckCircle2, History, ChevronRight, XCircle } from 'lucide-react';
 import AppShell from '@/components/AppShell';
+import BackLink from '@/components/BackLink';
 
 interface FlashMsg {
   ok: boolean;
@@ -78,12 +79,14 @@ export default function HabitQClient({
               <p className="text-[11px] font-semibold text-slate-500 truncate">{user.jabatan} • {user.perusahaan}</p>
             </div>
           </div>
-          <button 
-            onClick={() => router.push('/dashboard')}
-            className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 text-slate-400 hover:text-slate-600 hover:bg-slate-100 active:scale-95 transition-all"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+          <BackLink>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 text-slate-400 hover:text-slate-600 hover:bg-slate-100 active:scale-95 transition-all"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          </BackLink>
         </div>
 
         {/* FLASH TOAST */}

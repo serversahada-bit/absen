@@ -60,7 +60,7 @@ const baseMenuItems = [
     icon: Briefcase,
     iconColor: 'text-rose-400',
     bgColor: 'bg-rose-50',
-    href: '#',
+    href: '/lembur',
   },
   {
     id: 'karyawan',
@@ -68,7 +68,7 @@ const baseMenuItems = [
     icon: Users,
     iconColor: 'text-violet-500',
     bgColor: 'bg-violet-50',
-    href: '#',
+    href: '/karyawan',
   },
   {
     id: 'peraturan',
@@ -76,7 +76,7 @@ const baseMenuItems = [
     icon: BookOpen,
     iconColor: 'text-slate-400',
     bgColor: 'bg-slate-100',
-    href: '#',
+    href: '/peraturan',
   },
 ];
 
@@ -87,7 +87,7 @@ const managerOnlyItems = [
     icon: CheckSquare,
     iconColor: 'text-pink-500',
     bgColor: 'bg-pink-50',
-    href: '#',
+    href: '/aproval_izin',
   },
   {
     id: 'app_lembur',
@@ -95,7 +95,7 @@ const managerOnlyItems = [
     icon: Clock,
     iconColor: 'text-cyan-500',
     bgColor: 'bg-cyan-50',
-    href: '#',
+    href: '/aproval_lembur',
   },
 ];
 
