@@ -6,6 +6,7 @@ import { query } from '@/lib/db';
 import { ArrowLeft, Clock, MapPin, Image as ImageIcon } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import BackLink from '@/components/BackLink';
+import AbsenPhoto from './AbsenPhoto';
 
 export const dynamic = 'force-dynamic';
 
@@ -178,19 +179,7 @@ export default async function RiwayatDetail(props: any) {
                   </div>
                   
                   <div className="p-1.5 pt-0">
-                    {fotoMasuk ? (
-                      <a href={imgSrc(fotoMasuk)} target="_blank" rel="noreferrer" className="block relative group overflow-hidden rounded-[20px]">
-                        <img src={imgSrc(fotoMasuk)} alt="Foto Masuk" className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105" />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <span className="text-white text-[11px] font-black tracking-widest uppercase bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-md">Lihat Penuh</span>
-                        </div>
-                      </a>
-                    ) : (
-                      <div className="bg-white border border-slate-100 rounded-[20px] p-8 text-center flex flex-col items-center justify-center min-h-[200px]">
-                        <ImageIcon className="w-8 h-8 text-slate-200 mb-2" />
-                        <p className="text-[12px] font-bold text-slate-400">Belum ada foto masuk.</p>
-                      </div>
-                    )}
+                    <AbsenPhoto src={imgSrc(fotoMasuk)} alt="Foto Masuk" emptyLabel="Belum ada foto masuk." />
                   </div>
                 </div>
 
@@ -205,19 +194,7 @@ export default async function RiwayatDetail(props: any) {
                   </div>
                   
                   <div className="p-1.5 pt-0">
-                    {fotoPulang ? (
-                      <a href={imgSrc(fotoPulang)} target="_blank" rel="noreferrer" className="block relative group overflow-hidden rounded-[20px]">
-                        <img src={imgSrc(fotoPulang)} alt="Foto Pulang" className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105" />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <span className="text-white text-[11px] font-black tracking-widest uppercase bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-md">Lihat Penuh</span>
-                        </div>
-                      </a>
-                    ) : (
-                      <div className="bg-white border border-slate-100 rounded-[20px] p-8 text-center flex flex-col items-center justify-center min-h-[200px]">
-                        <ImageIcon className="w-8 h-8 text-slate-200 mb-2" />
-                        <p className="text-[12px] font-bold text-slate-400">Belum ada foto pulang.</p>
-                      </div>
-                    )}
+                    <AbsenPhoto src={imgSrc(fotoPulang)} alt="Foto Pulang" emptyLabel="Belum ada foto pulang." />
                   </div>
                 </div>
 
