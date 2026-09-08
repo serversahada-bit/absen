@@ -18,14 +18,6 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    // Minta fullscreen di awal (masih dalam konteks user gesture klik tombol).
-    // Diam-diam gagal kalau browser tidak mendukung (mis. Safari iOS).
-    try {
-      await document.documentElement.requestFullscreen?.();
-    } catch {
-      // Browser menolak/tidak mendukung fullscreen — lanjut login seperti biasa.
-    }
-
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
