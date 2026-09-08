@@ -12,8 +12,9 @@ import PeraturanList, { PeraturanDoc } from './PeraturanList';
 
 export const dynamic = 'force-dynamic';
 
-// Folder PDF peraturan di-hosting di subdomain lama (bukan di app ini).
-const PDF_BASE_URL = 'https://absen.ptslu.id/config/uploads/peraturan/';
+// PDF peraturan disimpan di storage lokal (public/uploads/peraturan),
+// berbagi persistent volume yang sama dengan presensi/izin.
+const PDF_BASE_URL = '/uploads/peraturan/';
 
 export default async function PeraturanPage({
   searchParams,
