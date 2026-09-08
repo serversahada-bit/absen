@@ -127,6 +127,17 @@ export default function PengajuanIzinPage() {
     <AppShell maxWidth="lg:max-w-2xl">
     <div className="text-slate-900 font-sans selection:bg-rose-200">
 
+      {/* LOADING OVERLAY */}
+      {isSubmitting && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center animate-fade-in-up">
+          <div className="bg-white rounded-[28px] shadow-2xl px-8 py-7 flex flex-col items-center gap-3">
+            <Loader2 className="w-9 h-9 text-rose-600 animate-spin" />
+            <p className="text-sm font-black text-slate-800">Mengirim pengajuan...</p>
+            <p className="text-xs font-semibold text-slate-400">Mohon tunggu sebentar</p>
+          </div>
+        </div>
+      )}
+
       {/* HEADER */}
       <div className="bg-white/80 backdrop-blur-xl px-5 py-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex items-center justify-between sticky top-0 z-40 border-b border-slate-100">
         <div className="flex items-center gap-3">
