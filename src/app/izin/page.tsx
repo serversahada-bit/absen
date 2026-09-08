@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Stethoscope, CalendarDays, CalendarClock, Clock, UploadCloud, CheckCircle2, AlertCircle, FileText, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { ArrowLeft, Stethoscope, CalendarDays, CalendarClock, Clock, UploadCloud, AlertCircle, FileText, Image as ImageIcon, Loader2 } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import BackLink from '@/components/BackLink';
 
@@ -18,13 +18,6 @@ export default function PengajuanIzinPage() {
   const [statusParam, setStatusParam] = useState('');
   const [msgParam, setMsgParam] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    // Read query params for status
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('status')) setStatusParam(params.get('status')!);
-    if (params.get('msg')) setMsgParam(params.get('msg')!);
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -48,14 +41,9 @@ export default function PengajuanIzinPage() {
         return;
       }
 
-      setStatusParam('success');
-      setMsgParam(data.message || 'Pengajuan izin berhasil dikirim.');
-      e.currentTarget.reset();
-      setBukti1Url(null);
-      setBukti2Url(null);
-      setBukti1Name('');
-      setBukti2Name('');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      router.push('/dashboard?izin_success=1');
+      router.refresh();
+      return;
     } catch {
       setStatusParam('error');
       setMsgParam('Terjadi masalah koneksi. Silakan coba lagi.');
@@ -155,16 +143,6 @@ export default function PengajuanIzinPage() {
 
       <div className="max-w-md mx-auto p-5">
         
-        {statusParam === 'success' && (
-          <div className="mb-5 rounded-[20px] bg-emerald-500 border border-emerald-400 p-4 flex items-start gap-3 shadow-lg shadow-emerald-500/20 animate-fade-in-up">
-            <CheckCircle2 className="w-5 h-5 text-white shrink-0 mt-0.5" />
-            <div>
-              <h3 className="text-sm font-bold text-white">Berhasil</h3>
-              <p className="text-[13px] font-medium text-white/90 leading-snug mt-0.5">{msgParam || 'Pengajuan izin berhasil dikirim ke HR dan salinan ke email Anda.'}</p>
-            </div>
-          </div>
-        )}
-
         {statusParam === 'error' && (
           <div className="mb-5 rounded-[20px] bg-rose-500 border border-rose-400 p-4 flex items-start gap-3 shadow-lg shadow-rose-500/20 animate-fade-in-up">
             <AlertCircle className="w-5 h-5 text-white shrink-0 mt-0.5" />
