@@ -164,6 +164,7 @@ export default async function DashboardPage() {
     approvedIzinRows.forEach((row: any) => {
       let current = new Date(row.mulai_tanggal);
       const end = new Date(row.sampai_tanggal);
+      const kategori = row.tipe_izin === 'Sakit' ? 'Sakit' : 'Izin';
       while (current <= end) {
         const dStr = format(current, 'yyyy-MM-dd');
         if (timelineByDate[dStr]) {
@@ -173,7 +174,7 @@ export default async function DashboardPage() {
             title: row.nama,
             subtitle: row.tipe_izin,
             meta: `${format(new Date(row.mulai_tanggal), 'dd MMM yyyy', {locale: id})} – ${format(new Date(row.sampai_tanggal), 'dd MMM yyyy', {locale: id})}`,
-            badge: 'Disetujui'
+            badge: kategori
           });
         }
         current = addDays(current, 1);
