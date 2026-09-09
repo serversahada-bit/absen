@@ -37,6 +37,7 @@ export async function POST(request: Request) {
   }
 
   let fotoFilename: string | null = null;
+  let fotoRelPath: string | null = null;
   const fotoFile = formData.get('foto');
 
   if (fotoFile instanceof File && fotoFile.size > 0) {
@@ -49,20 +50,21 @@ export async function POST(request: Request) {
     }
 
     const buffer = Buffer.from(await fotoFile.arrayBuffer());
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'profil');
     await fs.mkdir(uploadDir, { recursive: true });
 
     const rand = crypto.randomBytes(6).toString('hex');
     fotoFilename = `profile_${userId}_${Date.now()}_${rand}.${ext}`;
+    fotoRelPath = `profil/${fotoFilename}`;
     await fs.writeFile(path.join(uploadDir, fotoFilename), buffer);
   }
 
   const updates: string[] = ['email = ?', 'no_hp = ?'];
   const params: any[] = [email, noHp];
 
-  if (fotoFilename) {
+  if (fotoRelPath) {
     updates.push('foto = ?');
-    params.push(fotoFilename);
+    params.push(fotoRelPath);
   }
 
   if (password) {
@@ -80,7 +82,7 @@ export async function POST(request: Request) {
   const updatedSession: UserSession = {
     ...session,
     email,
-    foto: fotoFilename || session.foto,
+    foto: fotoRelPath || session.foto,
   };
   const token = await createSessionToken(updatedSession);
   const cookieStore = await cookies();
@@ -95,6 +97,6 @@ export async function POST(request: Request) {
   return NextResponse.json({
     success: true,
     message: 'Profil berhasil diperbarui.',
-    foto: fotoFilename ? `/uploads/${fotoFilename}` : undefined,
+    foto: fotoRelPath ? `/uploads/${fotoRelPath}` : undefined,
   });
 }
