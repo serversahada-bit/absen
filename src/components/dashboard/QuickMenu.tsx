@@ -4,16 +4,17 @@ import React from 'react';
 import Link from 'next/link';
 import { useNavModal } from '@/components/NavModalContext';
 import {
-  Sparkles, 
-  History, 
-  CalendarCheck, 
-  PlusSquare, 
-  Briefcase, 
-  Users, 
+  Sparkles,
+  History,
+  CalendarCheck,
+  PlusSquare,
+  Briefcase,
+  Users,
   BookOpen,
   CheckSquare,
   Clock,
-  Bell
+  Bell,
+  ShieldCheck
 } from 'lucide-react';
 
 interface QuickMenuProps {
@@ -79,6 +80,14 @@ const baseMenuItems = [
     iconColor: 'text-slate-400',
     bgColor: 'bg-slate-100',
     href: '/peraturan',
+  },
+  {
+    id: 'legalitas',
+    label: 'Legalitas',
+    icon: ShieldCheck,
+    iconColor: 'text-indigo-500',
+    bgColor: 'bg-indigo-50',
+    href: '/riwayat_legalitas',
   },
 ];
 

@@ -107,15 +107,15 @@ export default async function DashboardPage() {
 
   if (isManager) {
     const izinRows: any = await query(`
-      SELECT COUNT(*) AS c FROM pengajuan_izin i 
-      JOIN tim_saya ts ON ts.anggota_id = i.karyawan_id 
+      SELECT COUNT(*) AS c FROM pengajuan_izin i
+      JOIN tim_saya ts ON ts.anggota_id = i.karyawan_id
       WHERE ts.manager_id = ? AND i.manager_status = 'Pending'
     `, [userId]);
     pendingIzinCount = izinRows?.[0]?.c || 0;
 
     const lemburRows: any = await query(`
-      SELECT COUNT(*) AS c FROM lembur l 
-      JOIN tim_saya ts ON ts.anggota_id = l.karyawan_id 
+      SELECT COUNT(*) AS c FROM lembur l
+      JOIN tim_saya ts ON ts.anggota_id = l.karyawan_id
       WHERE ts.manager_id = ? AND l.manager_status = 'PENDING'
     `, [userId]);
     pendingLemburCount = lemburRows?.[0]?.c || 0;
