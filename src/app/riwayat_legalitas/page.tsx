@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
-import { ArrowLeft, ExternalLink, Plus, FileText, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Plus, FileText, CheckCircle2, XCircle, Loader2, Download } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import BackLink from '@/components/BackLink';
 import LegalitasSuccessToast from '@/components/LegalitasSuccessToast';
@@ -20,23 +20,29 @@ function formatTanggal(tgl: string) {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  if (status === 'Pending') {
+  if (status === 'Diproses') {
     return (
-      <span className="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wide border border-amber-200 flex items-center gap-1.5 shadow-sm">
-        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.8)]"></span>
-        MENUNGGU
+      <span className="bg-sky-100 text-sky-700 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wide border border-sky-200 flex items-center gap-1.5 shadow-sm">
+        <Loader2 className="w-3 h-3 animate-spin" /> DIPROSES
       </span>
     );
-  } else if (status === 'Disetujui') {
+  } else if (status === 'Selesai') {
     return (
       <span className="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wide border border-emerald-200 flex items-center gap-1 shadow-sm">
-        <CheckCircle2 className="w-3 h-3" /> DISETUJUI
+        <CheckCircle2 className="w-3 h-3" /> SELESAI
+      </span>
+    );
+  } else if (status === 'Ditolak') {
+    return (
+      <span className="bg-rose-100 text-rose-700 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wide border border-rose-200 flex items-center gap-1 shadow-sm">
+        <XCircle className="w-3 h-3" /> DITOLAK
       </span>
     );
   } else {
     return (
-      <span className="bg-rose-100 text-rose-700 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wide border border-rose-200 flex items-center gap-1 shadow-sm">
-        <XCircle className="w-3 h-3" /> DITOLAK
+      <span className="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wide border border-amber-200 flex items-center gap-1.5 shadow-sm">
+        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.8)]"></span>
+        MENUNGGU
       </span>
     );
   }
@@ -54,7 +60,8 @@ export default async function RiwayatLegalitasPage() {
   let rows: any[] = [];
   try {
     rows = await query(
-      `SELECT id, jenis_dokumen, keterangan, file_pdf, status, created_at, catatan_admin
+      `SELECT id, jenis_dokumen, keterangan, file_pdf, status, created_at, catatan_admin,
+              estimasi_hari, diproses_at, file_hasil, selesai_at
        FROM pengajuan_legalitas
        WHERE karyawan_id = ?
        ORDER BY created_at DESC`,
@@ -145,11 +152,29 @@ export default async function RiwayatLegalitasPage() {
                   </div>
                 )}
 
+                {row.status === 'Diproses' && (
+                  <div className="bg-sky-50 border border-sky-100 text-sky-700 rounded-2xl p-3.5 text-[12px] leading-relaxed relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-sky-400" />
+                    <div className="font-black mb-1 uppercase tracking-wider text-[10px]">Sedang Diproses HRD</div>
+                    <div className="font-medium">
+                      {row.estimasi_hari ? `Estimasi selesai dalam ${row.estimasi_hari} hari kerja.` : 'Sedang dikerjakan oleh HRD.'}
+                    </div>
+                  </div>
+                )}
+
+                {row.status === 'Selesai' && row.file_hasil && (
+                  <a href={`/uploads/legalitas_hasil/${row.file_hasil}`} target="_blank" rel="noreferrer"
+                    className="text-[11px] font-black text-white tracking-wide flex items-center justify-center gap-1.5 bg-emerald-600 border border-emerald-600 px-4 py-2.5 rounded-xl hover:bg-emerald-700 transition-all active:scale-95 w-full">
+                    <Download className="w-4 h-4" />
+                    DOWNLOAD HASIL LEGALISASI
+                  </a>
+                )}
+
                 {row.file_pdf && (
                   <a href={`/uploads/legalitas/${row.file_pdf}`} target="_blank" rel="noreferrer"
                     className="text-[11px] font-black text-indigo-600 tracking-wide flex items-center justify-center gap-1.5 bg-indigo-50 border border-indigo-100 px-4 py-2.5 rounded-xl hover:bg-indigo-600 hover:text-white transition-all active:scale-95 w-full">
                     <ExternalLink className="w-4 h-4" />
-                    LIHAT FILE PDF
+                    LIHAT FILE PDF ASLI
                   </a>
                 )}
 
