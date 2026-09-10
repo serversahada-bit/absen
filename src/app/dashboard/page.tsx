@@ -130,25 +130,37 @@ export default async function DashboardPage() {
 
   // Ultah Timeline
   const ultahRows: any = await query(`SELECT id, nama, tanggal_lahir FROM karyawan WHERE status_karyawan != 'Non-Aktif' AND tanggal_lahir IS NOT NULL AND tanggal_lahir != '0000-00-00'`);
+  const tahunPerayaan = parseInt(formatJakartaDate(nowWib).slice(0, 4), 10);
 
   if (ultahRows) {
-    ultahRows.forEach((row: any) => {
+    for (const row of ultahRows) {
       const birth = new Date(row.tanggal_lahir);
       for (let i = 0; i < 6; i++) {
         const { month: targetMonth, day: targetDay } = jakartaMonthDaySubDays(i, nowWib);
         if (targetMonth === birth.getMonth() + 1 && targetDay === birth.getDate()) {
           const dStr = jakartaSubDaysString(i, nowWib);
           if (timelineByDate[dStr]) {
+            const komentarRows: any = await query(
+              `SELECT u.komentar, k.nama FROM ucapan_ultah u
+               JOIN karyawan k ON k.id = u.pengirim_id
+               WHERE u.penerima_id = ? AND u.tahun = ?
+               ORDER BY u.created_at ASC LIMIT 20`,
+              [row.id, tahunPerayaan]
+            );
+            const comments = (komentarRows || []).map((k: any) => ({ name: k.nama, comment: k.komentar }));
+
             timelineByDate[dStr].push({
               id: 'ultah_' + row.id,
               type: 'ultah',
               title: row.nama,
-              comments: [], // Todo: fetch comments
+              karyawanId: row.id,
+              tahun: tahunPerayaan,
+              comments,
             });
           }
         }
       }
-    });
+    }
   }
 
   // Cuti/Izin Timeline (SEMUA ORANG melihat yang disetujui)

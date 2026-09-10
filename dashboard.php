@@ -1093,7 +1093,7 @@ unset($items);
                                     <span class="bd-badge">🎉 ULTAH</span>
                                 </div>
                                 <div class="bd-wishes">
-                                    Semoga diberi kesehatan & rezeki yang lapang, doa terbaik selalu menyertai langkahmu. Happy Birthday! 🎂
+                                    Barakallah fii umrik! Semoga Allah SWT senantiasa melimpahkan kesehatan, keberkahan rezeki, dan kemudahan dalam setiap langkahmu. 🤲🎂
                                 </div>
                                 <?php if (!empty($tlIt['komentar'])): ?>
                                 <div class="bd-comments">

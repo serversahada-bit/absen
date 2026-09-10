@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { CalendarDays } from 'lucide-react';
+import React, { useState } from 'react';
+import { CalendarDays, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
@@ -12,6 +12,8 @@ interface TimelineItem {
   subtitle?: string;
   meta?: string;
   badge?: string;
+  karyawanId?: number;
+  tahun?: number;
   comments?: Array<{ name: string; comment: string }>;
 }
 
@@ -78,25 +80,7 @@ export default function Timeline({ isManager, days }: TimelineProps) {
                 <div className="flex flex-col gap-2.5">
                   {day.items.map((item) => {
                     if (item.type === 'ultah') {
-                      return (
-                        <div key={item.id} className="bg-white border border-rose-100 rounded-[20px] p-4 relative overflow-hidden group hover:border-rose-200 transition-all hover:shadow-md hover:-translate-y-0.5">
-                          <div className="absolute -right-3 -top-3 text-[60px] opacity-10 rotate-12 select-none pointer-events-none">🎉</div>
-                          <div className="flex items-start justify-between gap-3 relative z-10">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <div className="w-2 h-2 rounded-full bg-rose-400 shrink-0" />
-                                <span className="text-xs font-black text-slate-800 truncate">{item.title}</span>
-                              </div>
-                              <p className="text-[11px] font-semibold text-slate-500 leading-relaxed">
-                                Semoga sehat & sukses selalu! 🎂
-                              </p>
-                            </div>
-                            <span className="shrink-0 text-[9px] font-black text-rose-600 bg-rose-50 border border-rose-100 px-2.5 py-1 rounded-full tracking-wider uppercase">
-                              Ulang Tahun
-                            </span>
-                          </div>
-                        </div>
-                      );
+                      return <BirthdayCard key={item.id} item={item} />;
                     }
 
                     // Izin / Cuti
@@ -134,6 +118,96 @@ export default function Timeline({ isManager, days }: TimelineProps) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function BirthdayCard({ item }: { item: TimelineItem }) {
+  const [comments, setComments] = useState(item.comments || []);
+  const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const komentar = text.trim();
+    if (!komentar || !item.karyawanId || !item.tahun) return;
+
+    setSending(true);
+    setError('');
+
+    const formData = new FormData();
+    formData.append('penerima_id', String(item.karyawanId));
+    formData.append('tahun', String(item.tahun));
+    formData.append('komentar', komentar);
+
+    try {
+      const res = await fetch('/api/ucapan_ultah', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        setComments((prev) => [...prev, data.comment]);
+        setText('');
+      } else {
+        setError(data.error || 'Gagal mengirim ucapan.');
+      }
+    } catch {
+      setError('Gagal mengirim ucapan.');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="bg-white border border-rose-100 rounded-[20px] p-4 relative overflow-hidden group hover:border-rose-200 transition-all hover:shadow-md hover:-translate-y-0.5">
+      <div className="absolute -right-3 -top-3 text-[60px] opacity-10 rotate-12 select-none pointer-events-none">🎉</div>
+      <div className="flex items-start justify-between gap-3 relative z-10">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-2 h-2 rounded-full bg-rose-400 shrink-0" />
+            <span className="text-xs font-black text-slate-800 truncate">{item.title}</span>
+          </div>
+          <p className="text-[11px] font-semibold text-slate-500 leading-relaxed">
+            Barakallah fii umrik! Semoga Allah SWT senantiasa melimpahkan kesehatan, keberkahan rezeki, dan kemudahan dalam setiap langkahmu. 🤲🎂
+          </p>
+        </div>
+        <span className="shrink-0 text-[9px] font-black text-rose-600 bg-rose-50 border border-rose-100 px-2.5 py-1 rounded-full tracking-wider uppercase">
+          🎉 Ultah
+        </span>
+      </div>
+
+      {comments.length > 0 && (
+        <div className="relative z-10 mt-3 pt-3 border-t border-rose-50 flex flex-col gap-1.5 max-h-32 overflow-y-auto">
+          {comments.map((c, i) => (
+            <p key={i} className="text-[11px] text-slate-600 leading-snug">
+              <span className="font-black text-slate-800">{c.name?.split(' ')[0]}</span>{' '}
+              <span className="font-semibold">{c.comment}</span>
+            </p>
+          ))}
+        </div>
+      )}
+
+      {item.karyawanId && item.tahun && (
+        <form onSubmit={handleSubmit} className="relative z-10 mt-3 flex items-center gap-2">
+          <input
+            type="text"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Tulis ucapan selamat..."
+            maxLength={200}
+            disabled={sending}
+            className="flex-1 min-w-0 text-[11px] font-semibold bg-rose-50/60 border border-rose-100 rounded-full px-3.5 py-2 outline-none focus:border-rose-300 disabled:opacity-60"
+          />
+          <button
+            type="submit"
+            disabled={sending || !text.trim()}
+            className="shrink-0 w-8 h-8 rounded-full bg-rose-500 hover:bg-rose-600 disabled:opacity-50 flex items-center justify-center transition-colors"
+            aria-label="Kirim ucapan"
+          >
+            <Send className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
+          </button>
+        </form>
+      )}
+      {error && <p className="relative z-10 text-[10px] font-bold text-rose-600 mt-1.5">{error}</p>}
     </div>
   );
 }
