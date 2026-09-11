@@ -14,7 +14,8 @@ import {
   CheckSquare,
   Clock,
   Bell,
-  ShieldCheck
+  ShieldCheck,
+  ScanQrCode
 } from 'lucide-react';
 
 interface QuickMenuProps {
@@ -88,6 +89,14 @@ const baseMenuItems = [
     iconColor: 'text-indigo-500',
     bgColor: 'bg-indigo-50',
     href: '/riwayat_legalitas',
+  },
+  {
+    id: 'scan_inventaris',
+    label: 'Scan Inventaris',
+    icon: ScanQrCode,
+    iconColor: 'text-sky-500',
+    bgColor: 'bg-sky-50',
+    href: '/scan_inventaris',
   },
 ];
 

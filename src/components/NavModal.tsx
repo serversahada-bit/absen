@@ -39,7 +39,7 @@ export default function NavModal({ src, title, onClose }: NavModalProps) {
         >
           <X className="w-4 h-4" />
         </button>
-        <iframe src={src} title={title} className="w-full h-full border-0" />
+        <iframe src={src} title={title} className="w-full h-full border-0" allow="camera" />
       </div>
     </div>
   );
