@@ -9,6 +9,13 @@ import BackLink from '@/components/BackLink';
 
 export const dynamic = 'force-dynamic';
 
+function formatDurasi(durasi: unknown): string | null {
+  if (durasi === null || durasi === undefined) return null;
+  const n = Number(durasi);
+  if (isNaN(n)) return null;
+  return `${n % 1 === 0 ? n : n.toFixed(1)} Hari`;
+}
+
 function formatTanggal(tgl: string) {
   if (!tgl || tgl === '0000-00-00') return '-';
   const date = new Date(tgl);
@@ -53,9 +60,9 @@ export default async function RiwayatIzinPage() {
   let rows: any[] = [];
   try {
     rows = await query(
-      `SELECT id, karyawan_id, tipe_izin, mulai_tanggal, sampai_tanggal, alasan, bukti_foto, status, created_at, catatan_admin 
-       FROM pengajuan_izin 
-       WHERE karyawan_id = ? 
+      `SELECT id, karyawan_id, tipe_izin, mulai_tanggal, sampai_tanggal, durasi_hari, alasan, bukti_foto, status, created_at, catatan_admin
+       FROM pengajuan_izin
+       WHERE karyawan_id = ?
        ORDER BY created_at DESC`,
       [userId]
     ) as any[];
@@ -110,7 +117,8 @@ export default async function RiwayatIzinPage() {
             {rows.map((row) => {
               const tipe = row.tipe_izin || '';
               const isSakit = tipe === 'Sakit';
-              
+              const durasiLabel = formatDurasi(row.durasi_hari);
+
               return (
                 <div key={row.id} className="bg-white p-5 rounded-[28px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col gap-4 transition-all hover:border-violet-100 hover:shadow-violet-500/5 group">
                   
@@ -137,6 +145,12 @@ export default async function RiwayatIzinPage() {
                       <span>Mulai: <b className="text-slate-800">{formatTanggal(row.mulai_tanggal)}</b></span>
                       <span>Sampai: <b className="text-slate-800">{formatTanggal(row.sampai_tanggal)}</b></span>
                     </div>
+
+                    {durasiLabel && (
+                      <div className="text-[11px] font-bold text-slate-500 mb-3 uppercase tracking-widest">
+                        Durasi: <b className="text-slate-800">{durasiLabel}</b>
+                      </div>
+                    )}
 
                     <p className="text-[13px] text-slate-600 font-medium leading-relaxed italic">
                       "{row.alasan}"

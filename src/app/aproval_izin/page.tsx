@@ -69,7 +69,7 @@ export default async function AprovalIzinPage({
 
   const rows: any = await query(
     `SELECT
-       pi.id, pi.karyawan_id, pi.tipe_izin, pi.mulai_tanggal, pi.sampai_tanggal,
+       pi.id, pi.karyawan_id, pi.tipe_izin, pi.mulai_tanggal, pi.sampai_tanggal, pi.durasi_hari,
        pi.alasan, pi.bukti_foto,
        pi.status, pi.catatan_admin, pi.created_at,
        pi.manager_status, pi.manager_note, pi.manager_at,
@@ -91,6 +91,7 @@ export default async function AprovalIzinPage({
     tipeIzin: r.tipe_izin || '-',
     mulaiTanggal: fmtDate(r.mulai_tanggal),
     sampaiTanggal: fmtDate(r.sampai_tanggal),
+    durasiHari: r.durasi_hari === null || r.durasi_hari === undefined ? null : Number(r.durasi_hari),
     alasan: r.alasan || '',
     buktiFoto: r.bukti_foto || '',
     finalStatus: r.status || 'Pending',

@@ -19,6 +19,13 @@ const ALLOWED_TYPES: Record<string, string> = {
 
 const VALID_TIPE = ['Sakit', 'Cuti', 'Cuti Khusus', 'Cuti Setengah Hari'];
 
+function hitungDurasiHari(tipe: string, mulai: string, sampai: string): number {
+  if (tipe === 'Cuti Setengah Hari') return 0.5;
+  const diffMs = new Date(sampai).getTime() - new Date(mulai).getTime();
+  const diffHari = Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1;
+  return diffHari > 0 ? diffHari : 1;
+}
+
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
@@ -185,10 +192,12 @@ async function handleSubmit(request: Request, userId: number) {
   const managerEmail = managerRow ? (managerRow.email_login || managerRow.email || null) : null;
   const managerNama = managerRow?.nama || null;
 
+  const durasiHari = hitungDurasiHari(tipe, mulai, sampai);
+
   await query(
-    `INSERT INTO pengajuan_izin (karyawan_id, tipe_izin, mulai_tanggal, sampai_tanggal, alasan, bukti_foto, status, manager_status, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'Pending', 'Pending', NOW())`,
-    [userId, tipe, mulai, sampai, alasan, buktiFilename]
+    `INSERT INTO pengajuan_izin (karyawan_id, tipe_izin, mulai_tanggal, sampai_tanggal, durasi_hari, alasan, bukti_foto, status, manager_status, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pending', NOW())`,
+    [userId, tipe, mulai, sampai, durasiHari, alasan, buktiFilename]
   );
 
   const mulaiFmt = format(new Date(mulai), 'dd MMM yyyy', { locale: id });

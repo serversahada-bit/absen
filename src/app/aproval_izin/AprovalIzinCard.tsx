@@ -13,6 +13,7 @@ export interface AprovalIzinRow {
   tipeIzin: string;
   mulaiTanggal: string;
   sampaiTanggal: string;
+  durasiHari: number | null;
   alasan: string;
   buktiFoto: string;
   finalStatus: string;
@@ -97,6 +98,15 @@ export default function AprovalIzinCard({ row, isLeader }: { row: AprovalIzinRow
           </div>
         </div>
       </div>
+
+      {row.durasiHari !== null && (
+        <div className="mt-3 rounded-2xl bg-slate-50 border border-slate-100 p-3">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Durasi</div>
+          <div className="mt-1 text-[13px] font-bold text-slate-800">
+            {row.durasiHari % 1 === 0 ? row.durasiHari : row.durasiHari.toFixed(1)} Hari
+          </div>
+        </div>
+      )}
 
       {row.alasan && (
         <div className="mt-3 rounded-2xl bg-white border border-slate-100 p-3">
