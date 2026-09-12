@@ -2,11 +2,10 @@ export function isManagerRole(peran?: string | null, jabatan?: string | null): b
   const peranLower = (peran || '').toLowerCase();
   const jabatanLower = (jabatan || '').toLowerCase();
   return (
-    ['manager', 'spv', 'supervisor', 'koordinator'].includes(peranLower) ||
+    ['manager', 'spv', 'supervisor'].includes(peranLower) ||
     jabatanLower.includes('manager') ||
     jabatanLower.includes('spv') ||
-    jabatanLower.includes('supervisor') ||
-    jabatanLower.includes('koordinator')
+    jabatanLower.includes('supervisor')
   );
 }
 
