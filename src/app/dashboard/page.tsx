@@ -271,14 +271,6 @@ export default async function DashboardPage() {
 
         {/* Sidebar: calendar + quick menu. Sits early on mobile, sticky beside content on desktop. */}
         <div className="lg:col-start-2 lg:row-start-1 lg:row-span-3 lg:sticky lg:top-6 lg:space-y-6">
-          <CalendarStrip />
-          <QuickMenu
-            isManager={isManager}
-            canNotifikasi={canNotifikasi}
-            pendingIzinCount={pendingIzinCount}
-            pendingLemburCount={pendingLemburCount}
-          />
-
           <a
             href="#"
             target="_blank"
@@ -299,6 +291,14 @@ export default async function DashboardPage() {
               strokeWidth={2.5}
             />
           </a>
+
+          <CalendarStrip />
+          <QuickMenu
+            isManager={isManager}
+            canNotifikasi={canNotifikasi}
+            pendingIzinCount={pendingIzinCount}
+            pendingLemburCount={pendingLemburCount}
+          />
         </div>
 
         <div className="lg:col-start-1 lg:row-start-3">
