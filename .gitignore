@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# user-uploaded files (contain real employee documents)
+/public/uploads/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

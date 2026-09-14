@@ -2,7 +2,8 @@ import React from 'react';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
-import { isManagerRole } from '@/lib/roles';
+import { isManagerRole, isItCoordinatorRole } from '@/lib/roles';
+import PushRequirementToggle from '@/components/dashboard/PushRequirementToggle';
 import TopBar from '@/components/dashboard/TopBar';
 import CalendarStrip from '@/components/dashboard/CalendarStrip';
 import StatusCards from '@/components/dashboard/StatusCards';
@@ -41,6 +42,13 @@ export default async function DashboardPage() {
   };
 
   const isManager = isManagerRole(userData.peran, userData.jabatan);
+  const isItCoordinator = isItCoordinatorRole(userData.peran, userData.jabatan);
+
+  let pushNotifRequired = true;
+  if (isItCoordinator) {
+    const settingRows: any = await query('SELECT setting_value FROM hc_settings WHERE setting_key = ? LIMIT 1', ['push_notif_required']);
+    pushNotifRequired = settingRows.length === 0 || settingRows[0].setting_value === '1';
+  }
 
   const nowWib = nowJakarta();
 
@@ -292,6 +300,7 @@ export default async function DashboardPage() {
           </a>
 
           <CalendarStrip />
+          {isItCoordinator && <PushRequirementToggle initialRequired={pushNotifRequired} />}
           <QuickMenu
             isManager={isManager}
             pendingIzinCount={pendingIzinCount}

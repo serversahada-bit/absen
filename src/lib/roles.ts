@@ -8,3 +8,9 @@ export function isManagerRole(peran?: string | null, jabatan?: string | null): b
     jabatanLower.includes('supervisor')
   );
 }
+
+export function isItCoordinatorRole(peran?: string | null, jabatan?: string | null): boolean {
+  const peranLower = (peran || '').toLowerCase();
+  const jabatanLower = (jabatan || '').toLowerCase();
+  return peranLower.includes('koordinator it') || jabatanLower.includes('koordinator it');
+}

@@ -1,9 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Bell, X } from 'lucide-react';
-
-const DISMISS_KEY = 'push_notif_dismissed';
+import React, { useEffect, useRef, useState } from 'react';
+import { Bell, ShieldAlert } from 'lucide-react';
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -16,19 +14,53 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
+type GateState = 'checking' | 'hidden' | 'ask' | 'denied';
+
 export default function PushNotificationPrompt() {
-  const [visible, setVisible] = useState(false);
+  const [state, setState] = useState<GateState>('checking');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const requiredRef = useRef(true);
 
   useEffect(() => {
     const supported = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window;
-    if (!supported) return;
+    if (!supported) {
+      setState('hidden');
+      return;
+    }
 
-    if (Notification.permission !== 'default') return;
-    if (localStorage.getItem(DISMISS_KEY) === '1') return;
+    let cancelled = false;
 
-    setVisible(true);
+    const evaluate = () => {
+      if (!requiredRef.current) {
+        setState('hidden');
+        return;
+      }
+      if (Notification.permission === 'granted') setState('hidden');
+      else if (Notification.permission === 'denied') setState('denied');
+      else setState('ask');
+    };
+
+    fetch('/api/settings/push-required')
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        requiredRef.current = data?.required !== false;
+        evaluate();
+      })
+      .catch(() => {
+        if (cancelled) return;
+        requiredRef.current = true;
+        evaluate();
+      });
+
+    document.addEventListener('visibilitychange', evaluate);
+    window.addEventListener('focus', evaluate);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', evaluate);
+      window.removeEventListener('focus', evaluate);
+    };
   }, []);
 
   const handleEnable = async () => {
@@ -37,8 +69,7 @@ export default function PushNotificationPrompt() {
     try {
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
-        setVisible(false);
-        localStorage.setItem(DISMISS_KEY, '1');
+        setState(permission === 'denied' ? 'denied' : 'ask');
         return;
       }
 
@@ -62,7 +93,7 @@ export default function PushNotificationPrompt() {
         throw new Error(data.error || 'Gagal menyimpan subscription ke server.');
       }
 
-      setVisible(false);
+      setState('hidden');
     } catch (err: any) {
       console.error('[Push] Gagal mengaktifkan notifikasi:', err);
       setError(err.message || 'Gagal mengaktifkan notifikasi. Coba lagi.');
@@ -71,47 +102,51 @@ export default function PushNotificationPrompt() {
     }
   };
 
-  const handleDismiss = () => {
-    setVisible(false);
-    localStorage.setItem(DISMISS_KEY, '1');
+  const handleRecheck = () => {
+    if (Notification.permission === 'granted') setState('ask');
+    else setError('Izin masih diblokir. Ikuti langkah di atas lalu coba lagi.');
   };
 
-  if (!visible) return null;
+  if (state === 'checking' || state === 'hidden') return null;
 
   return (
-    <div className="fixed top-5 right-5 left-5 lg:left-auto z-50 max-w-sm rounded-2xl bg-white border border-slate-200 shadow-xl p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
-      <div className="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center shrink-0">
-        <Bell className="w-5 h-5" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-slate-900">Aktifkan Notifikasi</p>
-        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-          Dapatkan notifikasi untuk approval izin/lembur dan pengumuman dari HRD.
-        </p>
-        {error && <p className="text-xs text-red-600 font-medium mt-1.5">{error}</p>}
-        <div className="flex items-center gap-2 mt-3">
-          <button
-            onClick={handleEnable}
-            disabled={loading}
-            className="text-xs font-bold text-white bg-violet-600 hover:bg-violet-700 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60"
-          >
-            {loading ? 'Memproses...' : 'Aktifkan'}
-          </button>
-          <button
-            onClick={handleDismiss}
-            className="text-xs font-semibold text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            Nanti saja
-          </button>
+    <div className="fixed inset-0 z-[999] flex items-center justify-center p-5 bg-slate-900/70 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl p-6 text-center">
+        <div className="w-14 h-14 mx-auto rounded-2xl bg-violet-100 text-violet-600 flex items-center justify-center">
+          {state === 'denied' ? <ShieldAlert className="w-7 h-7" /> : <Bell className="w-7 h-7" />}
         </div>
+
+        {state === 'ask' ? (
+          <>
+            <p className="text-base font-bold text-slate-900 mt-4">Aktifkan Notifikasi</p>
+            <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">
+              Notifikasi wajib diaktifkan untuk bisa absen, supaya kamu menerima approval izin/lembur dan pengumuman dari HRD.
+            </p>
+            {error && <p className="text-xs text-red-600 font-medium mt-2">{error}</p>}
+            <button
+              onClick={handleEnable}
+              disabled={loading}
+              className="mt-4 w-full text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 px-4 py-2.5 rounded-xl transition-colors disabled:opacity-60"
+            >
+              {loading ? 'Memproses...' : 'Izinkan Notifikasi'}
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="text-base font-bold text-slate-900 mt-4">Notifikasi Diblokir</p>
+            <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">
+              Notifikasi wajib diaktifkan untuk bisa absen. Buka setting browser kamu, cari izin &quot;Notifications&quot; untuk situs ini, lalu ubah ke &quot;Allow&quot;. Setelah itu tekan tombol di bawah.
+            </p>
+            {error && <p className="text-xs text-red-600 font-medium mt-2">{error}</p>}
+            <button
+              onClick={handleRecheck}
+              className="mt-4 w-full text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 px-4 py-2.5 rounded-xl transition-colors"
+            >
+              Sudah Diaktifkan, Cek Lagi
+            </button>
+          </>
+        )}
       </div>
-      <button
-        onClick={handleDismiss}
-        className="text-slate-300 hover:text-slate-500 transition-colors shrink-0"
-        aria-label="Tutup"
-      >
-        <X className="w-4 h-4" />
-      </button>
     </div>
   );
 }
