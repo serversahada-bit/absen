@@ -57,7 +57,7 @@ export default async function KaryawanDetailPage({
         <div className="bg-white/80 backdrop-blur-xl px-5 py-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] sticky top-0 z-40 border-b border-slate-100">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <KaryawanAvatar name={k.nama || ''} photoUrl={k.foto ? `/uploads/${k.foto}` : undefined} size={56} />
+              <KaryawanAvatar name={k.nama || ''} photoUrl={k.foto ? `/api/uploads/${k.foto}` : undefined} size={56} />
               <div className="min-w-0">
                 <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Detail</p>
                 <h1 className="text-lg font-black text-slate-900 truncate leading-tight">{k.nama || '-'}</h1>

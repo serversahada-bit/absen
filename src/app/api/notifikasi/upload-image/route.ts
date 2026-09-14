@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { isNotifikasiAdminRole } from '@/lib/roles';
+import { PERSISTENT_UPLOAD_DIR } from '@/lib/uploadDir';
 
 const MAX_BYTES = 3 * 1024 * 1024;
 const ALLOWED_TYPES: Record<string, string> = {
@@ -42,12 +43,12 @@ export async function POST(request: Request) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'notifikasi');
+  const uploadDir = path.join(PERSISTENT_UPLOAD_DIR, 'notifikasi');
   await fs.mkdir(uploadDir, { recursive: true });
 
   const rand = crypto.randomBytes(6).toString('hex');
   const filename = `notif_${Date.now()}_${rand}.${ext}`;
   await fs.writeFile(path.join(uploadDir, filename), buffer);
 
-  return NextResponse.json({ success: true, url: `/uploads/notifikasi/${filename}` });
+  return NextResponse.json({ success: true, url: `/api/uploads/notifikasi/${filename}` });
 }

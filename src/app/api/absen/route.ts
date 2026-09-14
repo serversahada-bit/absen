@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { nowJakarta, formatJakartaDate, formatJakartaTime, formatJakartaCompact } from '@/lib/time';
+import { PERSISTENT_UPLOAD_DIR } from '@/lib/uploadDir';
 
 const MAX_BYTES = 2 * 1024 * 1024;
 
@@ -60,7 +61,7 @@ async function handleSubmit(request: Request, userId: number) {
     );
   }
 
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'presensi');
+  const uploadDir = path.join(PERSISTENT_UPLOAD_DIR, 'presensi');
   await fs.mkdir(uploadDir, { recursive: true });
 
   const nowWib = nowJakarta();

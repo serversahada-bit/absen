@@ -12,9 +12,9 @@ import PeraturanList, { PeraturanDoc } from './PeraturanList';
 
 export const dynamic = 'force-dynamic';
 
-// PDF peraturan disimpan di storage lokal (public/uploads/peraturan),
-// berbagi persistent volume yang sama dengan presensi/izin.
-const PDF_BASE_URL = '/uploads/peraturan/';
+// PDF peraturan disimpan di storage persisten (LEGACY_UPLOAD_DIR/peraturan),
+// dilayani lewat /api/uploads supaya tidak tergantung symlink manual di public/uploads.
+const PDF_BASE_URL = '/api/uploads/peraturan/';
 
 export default async function PeraturanPage({
   searchParams,

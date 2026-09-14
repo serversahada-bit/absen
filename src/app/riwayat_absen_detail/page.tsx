@@ -50,7 +50,8 @@ function imgSrc(path: string) {
   if (!path) return '';
   if (path.startsWith('http')) return path;
   if (path.startsWith('data:')) return path;
-  return path.startsWith('/') ? path : `/${path}`;
+  const rel = path.replace(/^\/?uploads\//, '');
+  return `/api/uploads/${rel}`;
 }
 
 interface PageProps {

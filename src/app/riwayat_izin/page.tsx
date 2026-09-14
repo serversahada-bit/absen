@@ -166,7 +166,7 @@ export default async function RiwayatIzinPage() {
                   </div>
 
                   {row.bukti_foto && (
-                    <a href={`/uploads/izin/${row.bukti_foto}`} target="_blank" rel="noreferrer" 
+                    <a href={`/api/uploads/izin/${row.bukti_foto}`} target="_blank" rel="noreferrer"
                       className="text-[11px] font-black text-violet-600 tracking-wide flex items-center justify-center gap-1.5 bg-violet-50 border border-violet-100 px-4 py-2.5 rounded-xl hover:bg-violet-600 hover:text-white transition-all active:scale-95 w-full">
                       <ExternalLink className="w-4 h-4" />
                       LIHAT LAMPIRAN BUKTI

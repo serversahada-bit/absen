@@ -134,7 +134,7 @@ export default async function KaryawanPage({
                   href={`/karyawan/${r.id}`}
                   className="bg-white rounded-[24px] border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-4 flex items-center gap-3 hover:border-violet-200 hover:shadow-md active:scale-[0.99] transition-all"
                 >
-                  <KaryawanAvatar name={r.nama} photoUrl={r.foto ? `/uploads/${r.foto}` : undefined} />
+                  <KaryawanAvatar name={r.nama} photoUrl={r.foto ? `/api/uploads/${r.foto}` : undefined} />
                   <div className="min-w-0 flex-1">
                     <p className="font-black text-slate-900 truncate">{r.nama}</p>
                     <p className="text-[12px] font-semibold text-slate-500 truncate mt-0.5">

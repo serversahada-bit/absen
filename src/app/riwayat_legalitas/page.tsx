@@ -171,7 +171,7 @@ export default async function RiwayatLegalitasPage() {
                 )}
 
                 {row.file_pdf && (
-                  <a href={`/uploads/legalitas/${row.file_pdf}`} target="_blank" rel="noreferrer"
+                  <a href={`/api/uploads/legalitas/${row.file_pdf}`} target="_blank" rel="noreferrer"
                     className="text-[11px] font-black text-indigo-600 tracking-wide flex items-center justify-center gap-1.5 bg-indigo-50 border border-indigo-100 px-4 py-2.5 rounded-xl hover:bg-indigo-600 hover:text-white transition-all active:scale-95 w-full">
                     <ExternalLink className="w-4 h-4" />
                     LIHAT FILE PDF ASLI

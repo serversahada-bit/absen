@@ -67,7 +67,7 @@ export default function AprovalIzinCard({ row, isLeader }: { row: AprovalIzinRow
     }
   };
 
-  const buktiUrl = row.buktiFoto ? `/uploads/izin/${row.buktiFoto}` : null;
+  const buktiUrl = row.buktiFoto ? `/api/uploads/izin/${row.buktiFoto}` : null;
 
   return (
     <div className="rounded-[24px] border border-slate-100 bg-white p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">

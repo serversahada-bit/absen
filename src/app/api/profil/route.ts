@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { getSession, createSessionToken, UserSession } from '@/lib/auth';
 import { query } from '@/lib/db';
+import { PERSISTENT_UPLOAD_DIR } from '@/lib/uploadDir';
 
 const MAX_BYTES = 2 * 1024 * 1024;
 const ALLOWED_TYPES: Record<string, string> = {
@@ -65,7 +66,7 @@ async function handleSubmit(request: Request, session: UserSession) {
     }
 
     const buffer = Buffer.from(await fotoFile.arrayBuffer());
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'profil');
+    const uploadDir = path.join(PERSISTENT_UPLOAD_DIR, 'profil');
     await fs.mkdir(uploadDir, { recursive: true });
 
     const rand = crypto.randomBytes(6).toString('hex');
@@ -112,6 +113,6 @@ async function handleSubmit(request: Request, session: UserSession) {
   return NextResponse.json({
     success: true,
     message: 'Profil berhasil diperbarui.',
-    foto: fotoRelPath ? `/uploads/${fotoRelPath}` : undefined,
+    foto: fotoRelPath ? `/api/uploads/${fotoRelPath}` : undefined,
   });
 }

@@ -37,7 +37,7 @@ export default async function DashboardPage() {
   const user = {
     name: userData.nama || '',
     role: userData.jabatan || '',
-    photoUrl: userData.foto ? `/uploads/${userData.foto}` : undefined,
+    photoUrl: userData.foto ? `/api/uploads/${userData.foto}` : undefined,
   };
 
   const isManager = isManagerRole(userData.peran, userData.jabatan);

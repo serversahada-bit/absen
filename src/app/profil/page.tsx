@@ -44,7 +44,7 @@ export default async function ProfilPage() {
           jabatan={data.jabatan || ''}
           email={data.email || ''}
           noHp={data.no_hp || ''}
-          fotoUrl={data.foto ? `/uploads/${data.foto}` : undefined}
+          fotoUrl={data.foto ? `/api/uploads/${data.foto}` : undefined}
         />
       </div>
     </AppShell>

@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { sendPushToKaryawan } from '@/lib/push';
+import { PERSISTENT_UPLOAD_DIR } from '@/lib/uploadDir';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
@@ -169,7 +170,7 @@ async function handleSubmit(request: Request, userId: number) {
     }
 
     const buffer = Buffer.from(await buktiFile.arrayBuffer());
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'izin');
+    const uploadDir = path.join(PERSISTENT_UPLOAD_DIR, 'izin');
     await fs.mkdir(uploadDir, { recursive: true });
 
     const rand = crypto.randomBytes(6).toString('hex');

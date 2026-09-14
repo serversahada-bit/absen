@@ -4,6 +4,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
+import { PERSISTENT_UPLOAD_DIR } from '@/lib/uploadDir';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
@@ -59,7 +60,7 @@ async function handleSubmit(request: Request, userId: number) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'legalitas');
+  const uploadDir = path.join(PERSISTENT_UPLOAD_DIR, 'legalitas');
   await fs.mkdir(uploadDir, { recursive: true });
 
   const rand = crypto.randomBytes(6).toString('hex');
