@@ -22,6 +22,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: 'Sesi tidak valid, silakan login ulang.' }, { status: 401 });
   }
 
+  try {
+    return await handleSubmit(request, session);
+  } catch (error: any) {
+    console.error('[Profil] Gagal menyimpan perubahan:', error);
+    if (error?.code === 'ER_DUP_ENTRY') {
+      return NextResponse.json({ success: false, error: 'Email sudah dipakai oleh akun lain.' }, { status: 400 });
+    }
+    return NextResponse.json(
+      { success: false, error: 'Terjadi kesalahan di server. Silakan coba lagi.' },
+      { status: 500 }
+    );
+  }
+}
+
+async function handleSubmit(request: Request, session: UserSession) {
   const userId = session.user_id;
   const formData = await request.formData().catch(() => null);
   if (!formData) {
