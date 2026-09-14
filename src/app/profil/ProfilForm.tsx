@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Camera, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 function getInitials(name: string): string {
   const parts = (name || '').trim().split(/\s+/);
@@ -23,7 +23,7 @@ export default function ProfilForm({ nama, jabatan, email, noHp, fotoUrl }: Prof
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(fotoUrl);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -38,7 +38,7 @@ export default function ProfilForm({ nama, jabatan, email, noHp, fotoUrl }: Prof
     if (isSubmitting) return;
 
     setIsSubmitting(true);
-    setResult(null);
+    setErrorMessage(null);
 
     try {
       const formData = new FormData(e.currentTarget);
@@ -49,33 +49,37 @@ export default function ProfilForm({ nama, jabatan, email, noHp, fotoUrl }: Prof
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        setResult({ ok: false, message: data.error || 'Gagal menyimpan perubahan.' });
+        setErrorMessage(data.error || 'Gagal menyimpan perubahan.');
+        setIsSubmitting(false);
         return;
       }
 
-      setResult({ ok: true, message: data.message || 'Profil berhasil diperbarui.' });
-      const passwordInput = e.currentTarget.elements.namedItem('password') as HTMLInputElement | null;
-      if (passwordInput) passwordInput.value = '';
-      router.refresh();
+      router.push('/dashboard?profil_success=1');
     } catch {
-      setResult({ ok: false, message: 'Terjadi masalah koneksi.' });
-    } finally {
+      setErrorMessage('Terjadi masalah koneksi.');
       setIsSubmitting(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {result && (
-        <div
-          className={`rounded-2xl border p-4 text-sm flex items-start gap-3 shadow-sm ${
-            result.ok ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'
-          }`}
-        >
-          {result.ok ? <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" /> : <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />}
+      {/* LOADING OVERLAY */}
+      {isSubmitting && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center animate-fade-in-up">
+          <div className="bg-white rounded-[28px] shadow-2xl px-8 py-7 flex flex-col items-center gap-3">
+            <Loader2 className="w-9 h-9 text-violet-600 animate-spin" />
+            <p className="text-sm font-black text-slate-800">Menyimpan perubahan...</p>
+            <p className="text-xs font-semibold text-slate-400">Mohon tunggu sebentar</p>
+          </div>
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="rounded-2xl border p-4 text-sm flex items-start gap-3 shadow-sm border-rose-200 bg-rose-50 text-rose-700">
+          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
           <div>
-            <p className="font-bold">{result.ok ? 'Berhasil' : 'Gagal'}</p>
-            <p className="mt-0.5">{result.message}</p>
+            <p className="font-bold">Gagal</p>
+            <p className="mt-0.5">{errorMessage}</p>
           </div>
         </div>
       )}
@@ -187,7 +191,7 @@ export default function ProfilForm({ nama, jabatan, email, noHp, fotoUrl }: Prof
         disabled={isSubmitting}
         className="w-full py-3.5 rounded-xl bg-violet-600 text-white font-bold shadow-lg shadow-violet-200 active:scale-[0.98] hover:bg-violet-700 transition-all flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        <CheckCircle2 className="w-5 h-5" />
+        {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
         {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
       </button>
     </form>

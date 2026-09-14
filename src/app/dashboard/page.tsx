@@ -10,6 +10,7 @@ import DigitalClock from '@/components/dashboard/DigitalClock';
 import QuickMenu from '@/components/dashboard/QuickMenu';
 import Timeline from '@/components/dashboard/Timeline';
 import IzinSuccessToast from '@/components/dashboard/IzinSuccessToast';
+import ProfilSuccessToast from '@/components/dashboard/ProfilSuccessToast';
 import { Building2, ArrowUpRight } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -239,6 +240,7 @@ export default async function DashboardPage() {
   return (
     <div className="lg:px-8 lg:pt-6">
       <IzinSuccessToast />
+      <ProfilSuccessToast />
       <div className="lg:hidden">
         <TopBar />
       </div>
