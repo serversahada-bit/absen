@@ -16,29 +16,72 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 type GateState = 'checking' | 'hidden' | 'ask' | 'denied';
 
+async function syncSubscription(createIfMissing = false): Promise<boolean> {
+  await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
+  const registration = await navigator.serviceWorker.ready;
+  let subscription = await registration.pushManager.getSubscription();
+
+  if (!subscription) {
+    if (!createIfMissing) return false;
+    const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+    if (!publicKey) throw new Error('Konfigurasi notifikasi belum tersedia. Hubungi admin.');
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
+    });
+  }
+
+  const res = await fetch('/api/push/subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ subscription }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Gagal menyimpan subscription ke server.');
+  }
+  return true;
+}
+
 export default function PushNotificationPrompt() {
   const [state, setState] = useState<GateState>('checking');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const requiredRef = useRef(true);
+  const syncingRef = useRef(false);
 
   useEffect(() => {
-    const supported = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window;
-    if (!supported) {
-      setState('hidden');
-      return;
-    }
+    const supported = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    if (!supported) return;
 
     let cancelled = false;
+    let settingsLoaded = false;
 
-    const evaluate = () => {
-      if (!requiredRef.current) {
-        setState('hidden');
+    const evaluate = async () => {
+      if (cancelled || !settingsLoaded || syncingRef.current || document.visibilityState === 'hidden') return;
+      if (Notification.permission !== 'granted') {
+        setState(!requiredRef.current ? 'hidden' : Notification.permission === 'denied' ? 'denied' : 'ask');
         return;
       }
-      if (Notification.permission === 'granted') setState('hidden');
-      else if (Notification.permission === 'denied') setState('denied');
-      else setState('ask');
+
+      // Permission alone does not guarantee a subscription exists in the browser or database.
+      syncingRef.current = true;
+      setLoading(true);
+      try {
+        const subscribed = await syncSubscription();
+        if (!cancelled) {
+          setError('');
+          setState(subscribed || !requiredRef.current ? 'hidden' : 'ask');
+        }
+      } catch (err: unknown) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Gagal memeriksa notifikasi. Coba lagi.');
+          setState(requiredRef.current ? 'ask' : 'hidden');
+        }
+      } finally {
+        syncingRef.current = false;
+        if (!cancelled) setLoading(false);
+      }
     };
 
     fetch('/api/settings/push-required')
@@ -46,11 +89,13 @@ export default function PushNotificationPrompt() {
       .then((data) => {
         if (cancelled) return;
         requiredRef.current = data?.required !== false;
+        settingsLoaded = true;
         evaluate();
       })
       .catch(() => {
         if (cancelled) return;
         requiredRef.current = true;
+        settingsLoaded = true;
         evaluate();
       });
 
@@ -64,6 +109,8 @@ export default function PushNotificationPrompt() {
   }, []);
 
   const handleEnable = async () => {
+    if (syncingRef.current) return;
+    syncingRef.current = true;
     setLoading(true);
     setError('');
     try {
@@ -73,31 +120,15 @@ export default function PushNotificationPrompt() {
         return;
       }
 
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      await navigator.serviceWorker.ready;
-
-      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
-      });
-
-      const res = await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Gagal menyimpan subscription ke server.');
-      }
+      await syncSubscription(true);
 
       setState('hidden');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Push] Gagal mengaktifkan notifikasi:', err);
-      setError(err.message || 'Gagal mengaktifkan notifikasi. Coba lagi.');
+      setError(err instanceof Error ? err.message : 'Gagal mengaktifkan notifikasi. Coba lagi.');
+      setState('ask');
     } finally {
+      syncingRef.current = false;
       setLoading(false);
     }
   };

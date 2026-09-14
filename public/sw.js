@@ -9,8 +9,8 @@ self.addEventListener('push', function (event) {
   const title = data.title || 'Great HRD';
   const options = {
     body: data.body || '',
-    icon: '/icon.png',
-    badge: '/icon.png',
+    icon: '/sasdw.png',
+    badge: '/sasdw.png',
     data: { url: data.url || '/dashboard' },
   };
   if (data.image) {
