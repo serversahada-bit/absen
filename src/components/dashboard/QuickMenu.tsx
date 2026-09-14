@@ -13,14 +13,12 @@ import {
   BookOpen,
   CheckSquare,
   Clock,
-  Bell,
   ShieldCheck,
   ScanQrCode
 } from 'lucide-react';
 
 interface QuickMenuProps {
   isManager: boolean;
-  canNotifikasi: boolean;
   pendingIzinCount: number;
   pendingLemburCount: number;
 }
@@ -119,21 +117,11 @@ const managerOnlyItems = [
   },
 ];
 
-const notifikasiItem = {
-  id: 'notifikasi',
-  label: 'Notifikasi',
-  icon: Bell,
-  iconColor: 'text-amber-500',
-  bgColor: 'bg-amber-50',
-  href: '/notifikasi',
-};
-
-export default function QuickMenu({ isManager, canNotifikasi, pendingIzinCount, pendingLemburCount }: QuickMenuProps) {
+export default function QuickMenu({ isManager, pendingIzinCount, pendingLemburCount }: QuickMenuProps) {
   const openModal = useNavModal();
   const menuItems = [
     ...baseMenuItems,
     ...(isManager ? managerOnlyItems : []),
-    ...(canNotifikasi ? [notifikasiItem] : []),
   ];
 
   const isExternal = (href: string) => href.startsWith('http://') || href.startsWith('https://');

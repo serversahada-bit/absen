@@ -63,18 +63,3 @@ export async function sendPushToKaryawan(karyawanId: number, payload: PushPayloa
     return 0;
   }
 }
-
-export async function sendPushBroadcast(payload: PushPayload): Promise<number> {
-  if (!vapidConfigured) return 0;
-
-  try {
-    const subs: PushSubscriptionRow[] = await query(
-      'SELECT id, endpoint, p256dh, auth FROM hc_push_subscriptions'
-    );
-    const results = await Promise.all(subs.map((sub) => sendToSubscription(sub, payload)));
-    return results.filter(Boolean).length;
-  } catch (error: any) {
-    console.error('[Push] sendPushBroadcast gagal:', error.message || error);
-    return 0;
-  }
-}

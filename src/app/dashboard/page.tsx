@@ -2,7 +2,7 @@ import React from 'react';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
-import { isManagerRole, isNotifikasiAdminRole } from '@/lib/roles';
+import { isManagerRole } from '@/lib/roles';
 import TopBar from '@/components/dashboard/TopBar';
 import CalendarStrip from '@/components/dashboard/CalendarStrip';
 import StatusCards from '@/components/dashboard/StatusCards';
@@ -41,7 +41,6 @@ export default async function DashboardPage() {
   };
 
   const isManager = isManagerRole(userData.peran, userData.jabatan);
-  const canNotifikasi = isNotifikasiAdminRole(userData.jabatan);
 
   const nowWib = nowJakarta();
 
@@ -295,7 +294,6 @@ export default async function DashboardPage() {
           <CalendarStrip />
           <QuickMenu
             isManager={isManager}
-            canNotifikasi={canNotifikasi}
             pendingIzinCount={pendingIzinCount}
             pendingLemburCount={pendingLemburCount}
           />
