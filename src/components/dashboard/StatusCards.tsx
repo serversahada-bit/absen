@@ -38,7 +38,7 @@ export default function StatusCards({ user, attendance, shift }: StatusCardsProp
     : { dot: 'bg-blue-400', text: 'text-blue-600', bg: 'bg-blue-50', label: 'Di Kantor' };
 
   return (
-    <div className="flex flex-col gap-3 px-5 lg:px-0 mt-4 animate-fade-in-up [animation-delay:160ms]">
+    <div className="flex flex-col gap-3 px-5 lg:px-0 mt-4 lg:mt-0 animate-fade-in-up [animation-delay:160ms]">
 
       {/* Employee Banner */}
       <div className="bg-gradient-to-br from-violet-600 to-purple-600 rounded-[24px] p-5 flex items-center gap-4 relative overflow-hidden shadow-[0_10px_30px_rgba(124,58,237,0.25)]">
