@@ -279,7 +279,7 @@ export default async function DashboardPage() {
         {/* Sidebar: calendar + quick menu. Sits early on mobile, sticky beside content on desktop. */}
         <div className="lg:col-start-2 lg:row-start-1 lg:row-span-3 lg:sticky lg:top-6 lg:space-y-6">
           <a
-            href="#"
+            href="/api/auth/sso-erp"
             target="_blank"
             rel="noopener noreferrer"
             className="hidden lg:flex items-center justify-between gap-3 bg-gradient-to-br from-violet-600 to-purple-600 rounded-[24px] p-5 shadow-[0_10px_30px_rgba(124,58,237,0.25)] hover:shadow-[0_14px_36px_rgba(124,58,237,0.35)] transition-all duration-300 group"
