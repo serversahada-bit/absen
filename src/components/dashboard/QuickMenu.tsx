@@ -14,7 +14,8 @@ import {
   CheckSquare,
   Clock,
   ShieldCheck,
-  ScanQrCode
+  ScanQrCode,
+  DoorOpen
 } from 'lucide-react';
 
 interface QuickMenuProps {
@@ -95,6 +96,14 @@ const baseMenuItems = [
     iconColor: 'text-sky-500',
     bgColor: 'bg-sky-50',
     href: '/scan_inventaris',
+  },
+  {
+    id: 'ruang_meeting',
+    label: 'Ruang Meeting',
+    icon: DoorOpen,
+    iconColor: 'text-cyan-600',
+    bgColor: 'bg-cyan-50',
+    href: '/riwayat_ruang_meeting',
   },
 ];
 
