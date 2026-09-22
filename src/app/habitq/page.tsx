@@ -53,8 +53,13 @@ export default async function HabitQPage() {
   const izinRow = isIzinToday ? izinRows[0] : null;
 
   // 3. Cek Mengaji Hari Ini
+  // created_at disimpan sebagai jam WIB apa adanya (lihat getNowString di actions.ts),
+  // jadi format jamnya di MySQL langsung (DATE_FORMAT) supaya tidak lewat konversi
+  // Date JavaScript — driver mysql2 menganggap DATETIME itu waktu lokal proses (UTC
+  // di Coolify), yang akan menggeser jamnya 7 jam kalau dikonversi ke Date dulu.
   const todaySessions = await query(
-    `SELECT id, juz, halaman_mulai, halaman_selesai, keterangan, created_at
+    `SELECT id, juz, halaman_mulai, halaman_selesai, keterangan, created_at,
+            DATE_FORMAT(created_at, '%H:%i') AS jam
      FROM mengaji_baca
      WHERE karyawan_id = ? AND tanggal = ?
      ORDER BY created_at DESC, id DESC`,
@@ -64,12 +69,12 @@ export default async function HabitQPage() {
 
   // 4. Riwayat Terakhir (30 data)
   const riwayat = await query(
-    `(SELECT tanggal, created_at, 'MENGAJI' AS tipe, juz, halaman_mulai, halaman_selesai, keterangan, NULL AS izin_jenis
+    `(SELECT tanggal, created_at, DATE_FORMAT(created_at, '%H:%i') AS jam, 'MENGAJI' AS tipe, juz, halaman_mulai, halaman_selesai, keterangan, NULL AS izin_jenis
       FROM mengaji_baca
       WHERE karyawan_id = ?
      )
      UNION ALL
-     (SELECT tanggal, created_at, 'IZIN' AS tipe, NULL AS juz, NULL AS halaman_mulai, NULL AS halaman_selesai, keterangan, jenis AS izin_jenis
+     (SELECT tanggal, created_at, DATE_FORMAT(created_at, '%H:%i') AS jam, 'IZIN' AS tipe, NULL AS juz, NULL AS halaman_mulai, NULL AS halaman_selesai, keterangan, jenis AS izin_jenis
       FROM mengaji_izin
       WHERE karyawan_id = ?
      )

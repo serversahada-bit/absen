@@ -132,7 +132,7 @@ export default function HabitQClient({
                   <span className="text-[13px] font-bold text-slate-700">
                     Juz <span className="text-violet-600">{s.juz}</span> • Hal {s.halaman_mulai}-{s.halaman_selesai}
                   </span>
-                  <span className="text-[10px] font-bold text-slate-400">{new Date(s.created_at).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}</span>
+                  <span className="text-[10px] font-bold text-slate-400">{s.jam}</span>
                 </div>
               ))}
               {todayCount > 3 && (
@@ -294,7 +294,7 @@ export default function HabitQClient({
                           )}
                         </div>
                         <span className="text-[10px] font-bold text-slate-400 bg-white px-2 py-1 rounded-md border border-slate-100">
-                           {new Date(r.created_at).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}
+                           {r.jam}
                         </span>
                       </div>
                       {r.keterangan && (
