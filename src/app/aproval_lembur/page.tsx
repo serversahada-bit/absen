@@ -5,11 +5,10 @@ import { ArrowLeft } from 'lucide-react';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { isManagerRole } from '@/lib/roles';
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
 import AppShell from '@/components/AppShell';
 import BackLink from '@/components/BackLink';
 import AprovalLemburCard, { AprovalLemburRow } from './AprovalLemburCard';
+import { formatInstantJakartaDisplay } from '@/lib/time';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +31,7 @@ const MGR_STATUS_MAP: Record<Exclude<FilterKey, 'all'>, string> = {
 function fmtDateTime(v: unknown): string {
   if (!v) return '-';
   try {
-    return format(new Date(v as string), 'dd MMM yyyy HH:mm', { locale: id });
+    return formatInstantJakartaDisplay(new Date(String(v)));
   } catch {
     return String(v);
   }
@@ -72,11 +71,13 @@ export default async function AprovalLemburPage({
   const rows: any = await query(
     `SELECT
        l.id, l.karyawan_id,
-       l.mulai_at, l.selesai_at, l.durasi_menit,
+       DATE_FORMAT(l.mulai_at, '%Y-%m-%dT%H:%i:%s+07:00') AS mulai_at,
+       DATE_FORMAT(l.selesai_at, '%Y-%m-%dT%H:%i:%s+07:00') AS selesai_at,
+       l.durasi_menit,
        l.alasan,
        l.status AS status_final,
        l.manager_status, l.manager_at, l.manager_notes,
-       l.created_at,
+       DATE_FORMAT(l.created_at, '%Y-%m-%dT%H:%i:%s+07:00') AS created_at,
        k.nama AS nama_karyawan, k.jabatan AS jabatan_karyawan, k.organisasi AS organisasi_karyawan
      FROM lembur l
      LEFT JOIN karyawan k ON k.id = l.karyawan_id

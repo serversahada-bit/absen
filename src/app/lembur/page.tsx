@@ -19,7 +19,10 @@ export default async function LemburPage() {
   const userData = userRows?.[0] || {};
 
   const historyRows: any = await query(
-    `SELECT mulai_at, selesai_at, durasi_menit, status
+    `SELECT
+       DATE_FORMAT(mulai_at, '%Y-%m-%dT%H:%i:%s+07:00') AS mulai_at,
+       DATE_FORMAT(selesai_at, '%Y-%m-%dT%H:%i:%s+07:00') AS selesai_at,
+       durasi_menit, status
      FROM lembur
      WHERE karyawan_id = ?
      ORDER BY id DESC
@@ -28,8 +31,8 @@ export default async function LemburPage() {
   );
 
   const initialHistory: LemburHistoryItem[] = (historyRows || []).map((row: any) => ({
-    mulaiAt: new Date(row.mulai_at).toISOString(),
-    selesaiAt: new Date(row.selesai_at).toISOString(),
+    mulaiAt: String(row.mulai_at),
+    selesaiAt: String(row.selesai_at),
     durasiMenit: Number(row.durasi_menit) || 0,
     status: row.status || 'PENDING',
   }));

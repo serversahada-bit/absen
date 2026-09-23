@@ -3,9 +3,8 @@
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, AlertCircle, Fingerprint, History } from 'lucide-react';
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
 import BackLink from '@/components/BackLink';
+import { formatInstantJakartaDate, formatInstantJakartaDisplay } from '@/lib/time';
 
 export interface LemburHistoryItem {
   mulaiAt: string;
@@ -36,7 +35,7 @@ function statusBadgeClass(statusRaw: string): string {
 export default function LemburClient({ userName, userRole, initialHistory }: LemburClientProps) {
   const router = useRouter();
 
-  const [tanggal, setTanggal] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [tanggal, setTanggal] = useState(formatInstantJakartaDate());
   const [mulai, setMulai] = useState('');
   const [selesai, setSelesai] = useState('');
   const [alasan, setAlasan] = useState('');
@@ -210,10 +209,10 @@ export default function LemburClient({ userName, userRole, initialHistory }: Lem
                   <div key={idx} className="rounded-2xl border border-slate-100 px-4 py-3 flex items-center justify-between">
                     <div>
                       <p className="text-[12px] font-bold text-slate-900">
-                        {format(mulaiDt, 'dd MMM yyyy', { locale: id })}
+                        {formatInstantJakartaDisplay(mulaiDt).slice(0, 11)}
                       </p>
                       <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
-                        {format(mulaiDt, 'HH:mm')} - {format(selesaiDt, 'HH:mm')} &bull; {menitToJamMenit(item.durasiMenit)}
+                        {formatInstantJakartaDisplay(mulaiDt).slice(-5)} - {formatInstantJakartaDisplay(selesaiDt).slice(-5)} &bull; {menitToJamMenit(item.durasiMenit)}
                       </p>
                     </div>
                     <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${statusBadgeClass(statusUpper)}`}>

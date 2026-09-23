@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { isManagerRole } from '@/lib/roles';
+import { formatInstantJakartaDb } from '@/lib/time';
 
 export async function POST(request: Request) {
   const session = await getSession();
@@ -27,6 +28,7 @@ export async function POST(request: Request) {
   }
 
   const newMgrStatus = aksi === 'approve' ? 'APPROVED' : 'REJECTED';
+  const managerAt = formatInstantJakartaDb();
 
   if (newMgrStatus === 'REJECTED' && catatan === '') {
     return NextResponse.json({ success: false, message: 'Alasan penolakan wajib diisi sebelum Reject.' }, { status: 400 });
@@ -48,10 +50,10 @@ export async function POST(request: Request) {
   // supaya manager tidak bisa mengubah keputusan yang sudah final diproses HC.
   const result: any = await query(
     `UPDATE lembur
-     SET manager_status = ?, manager_id = ?, manager_at = NOW(), manager_notes = ?
+     SET manager_status = ?, manager_id = ?, manager_at = ?, manager_notes = ?
      WHERE id = ? AND manager_status = 'PENDING' AND status = 'PENDING'
      LIMIT 1`,
-    [newMgrStatus, userId, catatan || null, id]
+    [newMgrStatus, userId, managerAt, catatan || null, id]
   );
 
   if (!result || result.affectedRows < 1) {

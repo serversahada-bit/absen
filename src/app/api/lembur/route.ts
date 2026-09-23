@@ -3,8 +3,11 @@ import nodemailer from 'nodemailer';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { sendPushToKaryawan } from '@/lib/push';
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import {
+  formatInstantJakartaDb,
+  formatInstantJakartaDisplay,
+  parseJakartaDateTime,
+} from '@/lib/time';
 
 function menitToJamMenit(menit: number): string {
   const jam = Math.floor(menit / 60);
@@ -51,8 +54,8 @@ async function kirimEmailLembur(params: {
   const recipients = ['hcsahada@gmail.com', 'serversahada@gmail.com'];
   if (managerEmail) recipients.push(managerEmail);
 
-  const mulaiFmt = format(mulaiAt, 'dd MMM yyyy HH:mm', { locale: id });
-  const selesaiFmt = format(selesaiAt, 'dd MMM yyyy HH:mm', { locale: id });
+  const mulaiFmt = formatInstantJakartaDisplay(mulaiAt);
+  const selesaiFmt = formatInstantJakartaDisplay(selesaiAt);
 
   const html = `
     <html><body style="font-family: Arial, sans-serif; background:#f4f4f4; padding:16px;">
@@ -131,14 +134,14 @@ async function handleSubmit(request: Request, userId: number) {
     return NextResponse.json({ success: false, errors }, { status: 400 });
   }
 
-  const dtMulai = new Date(`${tanggal}T${mulai}:00`);
-  const dtSelesai = new Date(`${tanggal}T${selesai}:00`);
-  if (dtSelesai < dtMulai) {
-    dtSelesai.setDate(dtSelesai.getDate() + 1);
+  const dtMulai = parseJakartaDateTime(tanggal, mulai);
+  let dtSelesai = parseJakartaDateTime(tanggal, selesai);
+  if (!dtMulai || !dtSelesai) {
+    return NextResponse.json({ success: false, errors: ['Format tanggal/jam tidak valid.'] }, { status: 400 });
   }
 
-  if (isNaN(dtMulai.getTime()) || isNaN(dtSelesai.getTime())) {
-    return NextResponse.json({ success: false, errors: ['Format tanggal/jam tidak valid.'] }, { status: 400 });
+  if (dtSelesai < dtMulai) {
+    dtSelesai = new Date(dtSelesai.getTime() + 24 * 60 * 60 * 1000);
   }
 
   const durasiMenit = Math.round((dtSelesai.getTime() - dtMulai.getTime()) / 60000);
@@ -165,13 +168,15 @@ async function handleSubmit(request: Request, userId: number) {
   const managerEmail = managerRow ? (managerRow.email_login || managerRow.email || null) : null;
   const managerNama = managerRow?.nama || null;
 
-  const mulaiAtStr = format(dtMulai, 'yyyy-MM-dd HH:mm:ss');
-  const selesaiAtStr = format(dtSelesai, 'yyyy-MM-dd HH:mm:ss');
+  // MySQL DATETIME menyimpan jam dinding tanpa metadata timezone.
+  const mulaiAtStr = formatInstantJakartaDb(dtMulai);
+  const selesaiAtStr = formatInstantJakartaDb(dtSelesai);
+  const createdAtStr = formatInstantJakartaDb();
 
   await query(
     `INSERT INTO lembur (karyawan_id, mulai_at, selesai_at, durasi_menit, alasan, status, created_at)
-     VALUES (?, ?, ?, ?, ?, 'PENDING', NOW())`,
-    [userId, mulaiAtStr, selesaiAtStr, durasiMenit, alasan]
+     VALUES (?, ?, ?, ?, ?, 'PENDING', ?)`,
+    [userId, mulaiAtStr, selesaiAtStr, durasiMenit, alasan, createdAtStr]
   );
 
   await kirimEmailLembur({

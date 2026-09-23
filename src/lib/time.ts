@@ -45,3 +45,59 @@ export function jakartaMonthDaySubDays(days: number, d: Date = nowJakarta()): { 
   shifted.setUTCDate(shifted.getUTCDate() - days);
   return { month: shifted.getUTCMonth() + 1, day: shifted.getUTCDate() };
 }
+
+const JAKARTA_OFFSET_MS = 7 * 60 * 60 * 1000;
+const BULAN_SINGKAT_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+/**
+ * Helper di bawah menerima Date sebagai instant asli, lalu menampilkannya sebagai WIB.
+ * Ini berbeda dari helper lama di atas yang memakai Date yang sudah digeser oleh
+ * `nowJakarta()` dan sengaja dipertahankan agar alur absensi lama tidak berubah.
+ */
+function instantJakartaParts(d: Date) {
+  const wib = new Date(d.getTime() + JAKARTA_OFFSET_MS);
+  return {
+    year: wib.getUTCFullYear(),
+    month: wib.getUTCMonth() + 1,
+    day: wib.getUTCDate(),
+    hour: wib.getUTCHours(),
+    minute: wib.getUTCMinutes(),
+    second: wib.getUTCSeconds(),
+  };
+}
+
+export function formatInstantJakartaDate(d: Date = new Date()): string {
+  const p = instantJakartaParts(d);
+  return `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`;
+}
+
+export function formatInstantJakartaTime(d: Date = new Date()): string {
+  const p = instantJakartaParts(d);
+  return `${String(p.hour).padStart(2, '0')}:${String(p.minute).padStart(2, '0')}:${String(p.second).padStart(2, '0')}`;
+}
+
+export function formatInstantJakartaDb(d: Date = new Date()): string {
+  return `${formatInstantJakartaDate(d)} ${formatInstantJakartaTime(d)}`;
+}
+
+export function formatInstantJakartaDisplay(d: Date): string {
+  const p = instantJakartaParts(d);
+  return `${String(p.day).padStart(2, '0')} ${BULAN_SINGKAT_ID[p.month - 1]} ${p.year} ${String(p.hour).padStart(2, '0')}:${String(p.minute).padStart(2, '0')}`;
+}
+
+/** Mengubah tanggal dan jam dinding WIB menjadi instant yang tidak ambigu. */
+export function parseJakartaDateTime(tanggal: string, jam: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal) || !/^\d{2}:\d{2}$/.test(jam)) {
+    return null;
+  }
+
+  const parsed = new Date(`${tanggal}T${jam}:00+07:00`);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  // Date akan menormalisasi nilai seperti 31 Februari; tolak nilai semacam itu.
+  if (formatInstantJakartaDate(parsed) !== tanggal || formatInstantJakartaTime(parsed).slice(0, 5) !== jam) {
+    return null;
+  }
+
+  return parsed;
+}
