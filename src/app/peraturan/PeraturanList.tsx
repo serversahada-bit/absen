@@ -9,6 +9,7 @@ export interface PeraturanDoc {
   file: string;
   url: string;
   date: string;
+  pengaju: string | null;
 }
 
 export default function PeraturanList({ docs }: { docs: PeraturanDoc[] }) {
@@ -37,6 +38,9 @@ export default function PeraturanList({ docs }: { docs: PeraturanDoc[] }) {
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-slate-900 text-sm leading-snug break-words">{d.judul}</p>
                 <p className="text-[11px] font-semibold text-slate-400 mt-1 truncate">{d.date || '-'}</p>
+                {d.pengaju && (
+                  <p className="text-[11px] font-semibold text-violet-600 mt-0.5 truncate">Diajukan oleh: {d.pengaju}</p>
+                )}
               </div>
             </div>
 
