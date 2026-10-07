@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowLeft, Search } from 'lucide-react';
+import { ArrowLeft, FileText, Library, Plus, Search } from 'lucide-react';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { format } from 'date-fns';
@@ -9,6 +9,7 @@ import { id } from 'date-fns/locale';
 import AppShell from '@/components/AppShell';
 import BackLink from '@/components/BackLink';
 import PeraturanList, { PeraturanDoc } from './PeraturanList';
+import RiwayatPengajuan, { RiwayatPengajuanRow } from './RiwayatPengajuan';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,10 +17,14 @@ export const dynamic = 'force-dynamic';
 // dilayani lewat /api/uploads supaya tidak tergantung symlink manual di public/uploads.
 const PDF_BASE_URL = '/api/uploads/peraturan/';
 
+function formatDate(value: any) {
+  return value ? format(new Date(value), 'dd MMM yyyy HH:mm', { locale: id }) : '';
+}
+
 export default async function PeraturanPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; tab?: string }>;
 }) {
   const session = await getSession();
   if (!session) {
@@ -29,24 +34,41 @@ export default async function PeraturanPage({
   const userId = session.user_id;
   const params = await searchParams;
   const q = (params.q || '').trim();
+  const tab = params.tab === 'riwayat' ? 'riwayat' : 'dokumen';
 
   const meRows: any = await query('SELECT nama, organisasi FROM karyawan WHERE id = ? LIMIT 1', [userId]);
   const me = meRows?.[0] || {};
 
-  let where = "WHERE file IS NOT NULL AND file <> ''";
+  let where = "WHERE p.file IS NOT NULL AND p.file <> ''";
   const likeParams: string[] = [];
   if (q !== '') {
-    where += ' AND (judul LIKE ? OR file LIKE ?)';
+    where += ' AND (p.judul LIKE ? OR p.file LIKE ?)';
     likeParams.push(`%${q}%`, `%${q}%`);
   }
 
-  const rows: any = await query(
-    `SELECT id, judul, file, uploaded_at
-     FROM peraturan_perusahaan
-     ${where}
-     ORDER BY uploaded_at DESC, id DESC`,
-    likeParams
-  );
+  let rows: any;
+  try {
+    rows = await query(
+      `SELECT p.id, p.judul, p.file, p.uploaded_at, k.nama AS pengaju_nama, k.organisasi AS pengaju_divisi
+       FROM peraturan_perusahaan p
+       LEFT JOIN pengajuan_peraturan pp ON pp.peraturan_id = p.id
+       LEFT JOIN karyawan k ON k.id = pp.karyawan_id
+       ${where}
+       ORDER BY p.uploaded_at DESC, p.id DESC`,
+      likeParams
+    );
+  } catch (e) {
+    // Tabel pengajuan_peraturan belum dibuat (dibuat otomatis saat halaman
+    // Peraturan Perusahaan di dashboard-hris dibuka): tampilkan daftar tanpa info pengaju.
+    console.error('Gagal membaca pengaju peraturan, fallback tanpa info pengaju:', e);
+    rows = await query(
+      `SELECT p.id, p.judul, p.file, p.uploaded_at
+       FROM peraturan_perusahaan p
+       ${where}
+       ORDER BY p.uploaded_at DESC, p.id DESC`,
+      likeParams
+    );
+  }
 
   const docs: PeraturanDoc[] = (rows || [])
     .filter((r: any) => /\.pdf$/i.test(String(r.file || '')))
@@ -57,9 +79,41 @@ export default async function PeraturanPage({
         judul: r.judul || fileBase,
         file: fileBase,
         url: PDF_BASE_URL + encodeURIComponent(fileBase),
-        date: r.uploaded_at ? format(new Date(r.uploaded_at), 'dd MMM yyyy HH:mm', { locale: id }) : '',
+        date: formatDate(r.uploaded_at),
+        pengaju: r.pengaju_nama ? (r.pengaju_divisi ? `${r.pengaju_nama} - ${r.pengaju_divisi}` : r.pengaju_nama) : null,
       };
     });
+
+  let riwayat: RiwayatPengajuanRow[] = [];
+  if (tab === 'riwayat') {
+    try {
+      const riwayatRows: any = await query(
+        `SELECT id, judul, file, catatan, status, catatan_admin, created_at
+         FROM pengajuan_peraturan
+         WHERE karyawan_id = ?
+         ORDER BY created_at DESC, id DESC`,
+        [userId]
+      );
+      riwayat = (riwayatRows || []).map((r: any) => ({
+        id: Number(r.id) || 0,
+        judul: r.judul || '-',
+        url: r.file ? PDF_BASE_URL + encodeURIComponent(String(r.file)) : '',
+        catatan: r.catatan || null,
+        status: r.status || 'Pending',
+        catatan_admin: r.catatan_admin || null,
+        date: formatDate(r.created_at),
+      }));
+    } catch (e) {
+      console.error('Gagal membaca riwayat pengajuan peraturan:', e);
+    }
+  }
+
+  const tabClass = (active: boolean) =>
+    `flex items-center justify-center gap-2 py-3 rounded-2xl border-2 font-black text-[13px] tracking-tight transition-all active:scale-95 ${
+      active
+        ? 'border-violet-500 bg-violet-50 text-violet-600 shadow-md'
+        : 'border-transparent bg-white text-slate-400 hover:bg-slate-50 shadow-[0_4px_20px_rgb(0,0,0,0.03)]'
+    }`;
 
   return (
     <AppShell maxWidth="lg:max-w-2xl">
@@ -82,33 +136,61 @@ export default async function PeraturanPage({
           </div>
         </div>
 
-        <div className="max-w-md mx-auto p-5">
-          {/* SEARCH */}
-          <form method="GET" className="bg-white rounded-[24px] border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] p-5">
-            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-              Cari judul / nama file PDF
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                name="q"
-                defaultValue={q}
-                placeholder="contoh: SOP Cuti"
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border-0 ring-1 ring-inset ring-slate-200 focus:ring-2 focus:ring-inset focus:ring-violet-500 text-[14px] font-semibold text-slate-700 transition-all"
-              />
-              <button
-                type="submit"
-                className="shrink-0 px-4 py-3 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-600 text-white flex items-center justify-center shadow-[0_6px_16px_rgba(124,58,237,0.3)] active:scale-95 transition-all"
-              >
-                <Search className="w-4 h-4" strokeWidth={2.5} />
-              </button>
+        <div className="max-w-md mx-auto p-5 space-y-4">
+          {/* AJUKAN DOKUMEN */}
+          <Link href="/pengajuan_peraturan" className="block relative w-full bg-violet-600 text-white p-5 rounded-[28px] shadow-[0_8px_30px_rgba(124,58,237,0.3)] hover:bg-violet-700 transition-all transform hover:-translate-y-1 active:scale-[0.98] active:translate-y-0 overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-bl-full opacity-10 transition-transform group-hover:scale-110 pointer-events-none" />
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md shadow-inner">
+                <Plus className="h-6 w-6 text-white" strokeWidth={2.5} />
+              </div>
+              <div className="text-left">
+                <p className="font-black text-[15px] tracking-wide">Ajukan Dokumen</p>
+                <p className="text-[12px] font-semibold text-violet-200 mt-0.5">SOP atau dokumen lain, tampil setelah disetujui HC</p>
+              </div>
             </div>
-            <p className="text-[11px] font-semibold text-slate-400 mt-3">Total: {docs.length} dokumen</p>
-          </form>
+          </Link>
 
-          <div className="mt-4">
-            <PeraturanList docs={docs} />
+          {/* TABS */}
+          <div className="grid grid-cols-2 gap-3">
+            <Link href="/peraturan" className={tabClass(tab === 'dokumen')}>
+              <Library className="w-4 h-4" /> Dokumen
+            </Link>
+            <Link href="/peraturan?tab=riwayat" className={tabClass(tab === 'riwayat')}>
+              <FileText className="w-4 h-4" /> Riwayat Saya
+            </Link>
           </div>
+
+          {tab === 'dokumen' ? (
+            <>
+              {/* SEARCH */}
+              <form method="GET" className="bg-white rounded-[24px] border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] p-5">
+                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                  Cari judul / nama file PDF
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    name="q"
+                    defaultValue={q}
+                    placeholder="contoh: SOP Cuti"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border-0 ring-1 ring-inset ring-slate-200 focus:ring-2 focus:ring-inset focus:ring-violet-500 text-[14px] font-semibold text-slate-700 transition-all"
+                  />
+                  <button
+                    type="submit"
+                    className="shrink-0 px-4 py-3 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-600 text-white flex items-center justify-center shadow-[0_6px_16px_rgba(124,58,237,0.3)] active:scale-95 transition-all"
+                  >
+                    <Search className="w-4 h-4" strokeWidth={2.5} />
+                  </button>
+                </div>
+                <p className="text-[11px] font-semibold text-slate-400 mt-3">Total: {docs.length} dokumen</p>
+              </form>
+
+              <PeraturanList docs={docs} />
+            </>
+          ) : (
+            <RiwayatPengajuan rows={riwayat} />
+          )}
         </div>
       </div>
     </AppShell>
