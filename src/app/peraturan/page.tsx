@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowLeft, FileText, Library, Plus, Search } from 'lucide-react';
+import { ArrowLeft, FileText, Library, Plus } from 'lucide-react';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { format } from 'date-fns';
@@ -39,12 +39,8 @@ export default async function PeraturanPage({
   const meRows: any = await query('SELECT nama, organisasi FROM karyawan WHERE id = ? LIMIT 1', [userId]);
   const me = meRows?.[0] || {};
 
-  let where = "WHERE p.file IS NOT NULL AND p.file <> ''";
-  const likeParams: string[] = [];
-  if (q !== '') {
-    where += ' AND (p.judul LIKE ? OR p.file LIKE ?)';
-    likeParams.push(`%${q}%`, `%${q}%`);
-  }
+  // Search judul / nama file dilakukan live di sisi client (PeraturanList).
+  const where = "WHERE p.file IS NOT NULL AND p.file <> ''";
 
   let rows: any;
   try {
@@ -54,8 +50,7 @@ export default async function PeraturanPage({
        LEFT JOIN pengajuan_peraturan pp ON pp.peraturan_id = p.id
        LEFT JOIN karyawan k ON k.id = pp.karyawan_id
        ${where}
-       ORDER BY p.uploaded_at DESC, p.id DESC`,
-      likeParams
+       ORDER BY p.uploaded_at DESC, p.id DESC`
     );
   } catch (e) {
     // Tabel pengajuan_peraturan belum dibuat (dibuat otomatis saat halaman
@@ -65,8 +60,7 @@ export default async function PeraturanPage({
       `SELECT p.id, p.judul, p.file, p.uploaded_at
        FROM peraturan_perusahaan p
        ${where}
-       ORDER BY p.uploaded_at DESC, p.id DESC`,
-      likeParams
+       ORDER BY p.uploaded_at DESC, p.id DESC`
     );
   }
 
@@ -163,30 +157,7 @@ export default async function PeraturanPage({
 
           {tab === 'dokumen' ? (
             <>
-              {/* SEARCH */}
-              <form method="GET" className="bg-white rounded-[24px] border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] p-5">
-                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-                  Cari judul / nama file PDF
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    name="q"
-                    defaultValue={q}
-                    placeholder="contoh: SOP Cuti"
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 border-0 ring-1 ring-inset ring-slate-200 focus:ring-2 focus:ring-inset focus:ring-violet-500 text-[14px] font-semibold text-slate-700 transition-all"
-                  />
-                  <button
-                    type="submit"
-                    className="shrink-0 px-4 py-3 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-600 text-white flex items-center justify-center shadow-[0_6px_16px_rgba(124,58,237,0.3)] active:scale-95 transition-all"
-                  >
-                    <Search className="w-4 h-4" strokeWidth={2.5} />
-                  </button>
-                </div>
-                <p className="text-[11px] font-semibold text-slate-400 mt-3">Total: {docs.length} dokumen</p>
-              </form>
-
-              <PeraturanList docs={docs} />
+              <PeraturanList docs={docs} initialKeyword={q} />
             </>
           ) : (
             <RiwayatPengajuan rows={riwayat} />

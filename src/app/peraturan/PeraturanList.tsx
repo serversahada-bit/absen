@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FileText, Eye, Download, X } from 'lucide-react';
+import SearchInput, { SearchEmptyState } from '@/components/SearchInput';
 
 export interface PeraturanDoc {
   id: number;
@@ -12,8 +13,18 @@ export interface PeraturanDoc {
   pengaju: string | null;
 }
 
-export default function PeraturanList({ docs }: { docs: PeraturanDoc[] }) {
+export default function PeraturanList({ docs, initialKeyword = '' }: { docs: PeraturanDoc[]; initialKeyword?: string }) {
   const [active, setActive] = useState<PeraturanDoc | null>(null);
+  const [keyword, setKeyword] = useState(initialKeyword);
+
+  // Cari berdasarkan judul atau nama file PDF
+  const filteredDocs = useMemo(() => {
+    const q = keyword.trim().toLowerCase();
+    if (!q) return docs;
+    return docs.filter((d) =>
+      d.judul.toLowerCase().includes(q) || d.file.toLowerCase().includes(q)
+    );
+  }, [docs, keyword]);
 
   if (docs.length === 0) {
     return (
@@ -28,43 +39,56 @@ export default function PeraturanList({ docs }: { docs: PeraturanDoc[] }) {
 
   return (
     <>
-      <div className="space-y-2.5">
-        {docs.map((d) => (
-          <div key={d.id} className="bg-white rounded-[24px] border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
-                <FileText className="w-5 h-5 text-rose-500" strokeWidth={2} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-bold text-slate-900 text-sm leading-snug break-words">{d.judul}</p>
-                <p className="text-[11px] font-semibold text-slate-400 mt-1 truncate">{d.date || '-'}</p>
-                {d.pengaju && (
-                  <p className="text-[11px] font-semibold text-violet-600 mt-0.5 truncate">Diajukan oleh: {d.pengaju}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-3 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setActive(d)}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-2xl bg-slate-900 px-3 py-2.5 text-[12px] font-bold text-white active:scale-[0.98] transition-all"
-              >
-                <Eye className="w-3.5 h-3.5" strokeWidth={2.25} />
-                Preview
-              </button>
-              <a
-                href={d.url}
-                download
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-[12px] font-bold text-slate-700 active:scale-[0.98] transition-all"
-              >
-                <Download className="w-3.5 h-3.5" strokeWidth={2.25} />
-                Download
-              </a>
-            </div>
-          </div>
-        ))}
+      <div className="flex items-center justify-between px-1 mt-2">
+        <h2 className="font-bold text-slate-500 text-[11px] uppercase tracking-widest">Daftar Dokumen</h2>
+        <span className="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-2.5 py-1 rounded-full shadow-sm">
+          {keyword.trim() ? `${filteredDocs.length} / ${docs.length}` : docs.length} Dokumen
+        </span>
       </div>
+
+      <SearchInput value={keyword} onChange={setKeyword} placeholder="Cari judul atau nama file PDF..." focusRingClass="focus:ring-violet-500" />
+
+      {filteredDocs.length === 0 ? (
+        <SearchEmptyState keyword={keyword} label="dokumen dengan judul atau nama file" />
+      ) : (
+        <div className="space-y-2.5">
+          {filteredDocs.map((d) => (
+            <div key={d.id} className="bg-white rounded-[24px] border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
+                  <FileText className="w-5 h-5 text-rose-500" strokeWidth={2} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-slate-900 text-sm leading-snug break-words">{d.judul}</p>
+                  <p className="text-[11px] font-semibold text-slate-400 mt-1 truncate">{d.date || '-'}</p>
+                  {d.pengaju && (
+                    <p className="text-[11px] font-semibold text-violet-600 mt-0.5 truncate">Diajukan oleh: {d.pengaju}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActive(d)}
+                  className="flex-1 flex items-center justify-center gap-1.5 rounded-2xl bg-slate-900 px-3 py-2.5 text-[12px] font-bold text-white active:scale-[0.98] transition-all"
+                >
+                  <Eye className="w-3.5 h-3.5" strokeWidth={2.25} />
+                  Preview
+                </button>
+                <a
+                  href={d.url}
+                  download
+                  className="flex-1 flex items-center justify-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-[12px] font-bold text-slate-700 active:scale-[0.98] transition-all"
+                >
+                  <Download className="w-3.5 h-3.5" strokeWidth={2.25} />
+                  Download
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {active && (
         <div className="fixed inset-0 z-[999] flex items-end sm:items-center justify-center p-3" onClick={() => setActive(null)}>
