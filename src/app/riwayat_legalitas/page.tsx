@@ -3,10 +3,11 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
-import { ArrowLeft, ExternalLink, Plus, FileText, CheckCircle2, XCircle, Loader2, Download } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import BackLink from '@/components/BackLink';
 import LegalitasSuccessToast from '@/components/LegalitasSuccessToast';
+import RiwayatLegalitasList, { type RiwayatLegalitasRow } from '@/components/RiwayatLegalitasList';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,35 +18,6 @@ function formatTanggal(tgl: string) {
 
   const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
   return `${date.getDate()} ${bulan[date.getMonth()]} ${date.getFullYear()}`;
-}
-
-function StatusBadge({ status }: { status: string }) {
-  if (status === 'Diproses') {
-    return (
-      <span className="bg-sky-100 text-sky-700 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wide border border-sky-200 flex items-center gap-1.5 shadow-sm">
-        <Loader2 className="w-3 h-3 animate-spin" /> DIPROSES
-      </span>
-    );
-  } else if (status === 'Selesai') {
-    return (
-      <span className="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wide border border-emerald-200 flex items-center gap-1 shadow-sm">
-        <CheckCircle2 className="w-3 h-3" /> SELESAI
-      </span>
-    );
-  } else if (status === 'Ditolak') {
-    return (
-      <span className="bg-rose-100 text-rose-700 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wide border border-rose-200 flex items-center gap-1 shadow-sm">
-        <XCircle className="w-3 h-3" /> DITOLAK
-      </span>
-    );
-  } else {
-    return (
-      <span className="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wide border border-amber-200 flex items-center gap-1.5 shadow-sm">
-        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.8)]"></span>
-        MENUNGGU
-      </span>
-    );
-  }
 }
 
 export default async function RiwayatLegalitasPage() {
@@ -70,6 +42,18 @@ export default async function RiwayatLegalitasPage() {
   } catch (e) {
     console.error('Gagal membaca riwayat legalitas:', e);
   }
+
+  const items: RiwayatLegalitasRow[] = rows.map((row) => ({
+    id: row.id,
+    jenis_dokumen: row.jenis_dokumen,
+    keterangan: row.keterangan,
+    file_pdf: row.file_pdf,
+    status: row.status,
+    tanggal: row.created_at ? formatTanggal(row.created_at instanceof Date ? row.created_at.toISOString().split('T')[0] : String(row.created_at).split(' ')[0]) : '-',
+    catatan_admin: row.catatan_admin,
+    estimasi_hari: row.estimasi_hari,
+    file_hasil: row.file_hasil,
+  }));
 
   return (
     <AppShell maxWidth="lg:max-w-2xl">
@@ -107,91 +91,7 @@ export default async function RiwayatLegalitasPage() {
           </div>
         </Link>
 
-        <div className="flex items-center justify-between px-1 mt-6 mb-2">
-          <h2 className="font-bold text-slate-500 text-[11px] uppercase tracking-widest">Daftar Riwayat</h2>
-          <span className="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-2.5 py-1 rounded-full shadow-sm">
-            {rows.length} Data
-          </span>
-        </div>
-
-        {rows.length > 0 ? (
-          <div className="space-y-4">
-            {rows.map((row) => (
-              <div key={row.id} className="bg-white p-5 rounded-[28px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col gap-4 transition-all hover:border-indigo-100 hover:shadow-indigo-500/5 group">
-
-                <div className="flex justify-between items-start gap-3">
-                  <div className="flex items-center gap-3.5">
-                    <div className="p-3 rounded-[16px] ring-1 ring-inset bg-indigo-50 text-indigo-500 ring-indigo-100 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
-                      <FileText className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-black text-slate-900 text-[14px]">{row.jenis_dokumen}</h3>
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
-                        {row.created_at ? formatTanggal(row.created_at instanceof Date ? row.created_at.toISOString().split('T')[0] : String(row.created_at).split(' ')[0]) : '-'}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="shrink-0">
-                    <StatusBadge status={row.status || 'Pending'} />
-                  </div>
-                </div>
-
-                {row.keterangan && (
-                  <div className="bg-[#f8f9fc] p-4 rounded-[20px] border border-slate-100">
-                    <p className="text-[13px] text-slate-600 font-medium leading-relaxed italic">
-                      "{row.keterangan}"
-                    </p>
-                  </div>
-                )}
-
-                {row.status === 'Ditolak' && row.catatan_admin && (
-                  <div className="bg-rose-50 border border-rose-100 text-rose-700 rounded-2xl p-3.5 text-[12px] leading-relaxed relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-rose-400" />
-                    <div className="font-black mb-1 uppercase tracking-wider text-[10px]">Alasan Penolakan</div>
-                    <div className="font-medium">{row.catatan_admin}</div>
-                  </div>
-                )}
-
-                {row.status === 'Diproses' && (
-                  <div className="bg-sky-50 border border-sky-100 text-sky-700 rounded-2xl p-3.5 text-[12px] leading-relaxed relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-sky-400" />
-                    <div className="font-black mb-1 uppercase tracking-wider text-[10px]">Sedang Diproses HRD</div>
-                    <div className="font-medium">
-                      {row.estimasi_hari ? `Estimasi selesai dalam ${row.estimasi_hari} hari kerja.` : 'Sedang dikerjakan oleh HRD.'}
-                    </div>
-                  </div>
-                )}
-
-                {row.status === 'Selesai' && row.file_hasil && (
-                  <a href={`/uploads/legalitas_hasil/${row.file_hasil}`} target="_blank" rel="noreferrer"
-                    className="text-[11px] font-black text-white tracking-wide flex items-center justify-center gap-1.5 bg-emerald-600 border border-emerald-600 px-4 py-2.5 rounded-xl hover:bg-emerald-700 transition-all active:scale-95 w-full">
-                    <Download className="w-4 h-4" />
-                    DOWNLOAD HASIL LEGALISASI
-                  </a>
-                )}
-
-                {row.file_pdf && (
-                  <a href={`/api/uploads/legalitas/${row.file_pdf}`} target="_blank" rel="noreferrer"
-                    className="text-[11px] font-black text-indigo-600 tracking-wide flex items-center justify-center gap-1.5 bg-indigo-50 border border-indigo-100 px-4 py-2.5 rounded-xl hover:bg-indigo-600 hover:text-white transition-all active:scale-95 w-full">
-                    <ExternalLink className="w-4 h-4" />
-                    LIHAT FILE PDF ASLI
-                  </a>
-                )}
-
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-20 animate-fade-in-up">
-            <div className="bg-slate-50 p-6 rounded-full w-24 h-24 mx-auto flex items-center justify-center mb-5 ring-1 ring-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-              <FileText className="h-10 w-10 text-slate-300" strokeWidth={1.5} />
-            </div>
-            <h3 className="text-[15px] font-black text-slate-900">Belum ada riwayat</h3>
-            <p className="text-[12px] font-semibold text-slate-400 mt-1 max-w-[220px] mx-auto leading-relaxed">
-              Data pengajuan legalitas Anda akan muncul di sini.
-            </p>
-          </div>
-        )}
+        <RiwayatLegalitasList rows={items} />
 
       </div>
     </div>
