@@ -10,6 +10,7 @@ import StatusCards from '@/components/dashboard/StatusCards';
 import DigitalClock from '@/components/dashboard/DigitalClock';
 import QuickMenu from '@/components/dashboard/QuickMenu';
 import Timeline from '@/components/dashboard/Timeline';
+import Pengumuman, { type PengumumanItem } from '@/components/dashboard/Pengumuman';
 import IzinSuccessToast from '@/components/dashboard/IzinSuccessToast';
 import ProfilSuccessToast from '@/components/dashboard/ProfilSuccessToast';
 import { Building2, ArrowUpRight } from 'lucide-react';
@@ -236,6 +237,36 @@ export default async function DashboardPage() {
     }
   }
 
+  // 6. PENGUMUMAN HC (5 agenda terdekat, dibuat dari dashboard-hris)
+  let pengumumanItems: PengumumanItem[] = [];
+  try {
+    const pengumumanRows: any = await query(`
+      SELECT id, judul, isi, lampiran, DATE_FORMAT(tanggal_pelaksanaan, '%Y-%m-%d') AS tanggal
+      FROM pengumuman_hc
+      WHERE tanggal_pelaksanaan >= ?
+      ORDER BY tanggal_pelaksanaan ASC, id ASC
+      LIMIT 5
+    `, [todayStr]);
+
+    const todayUtc = Date.parse(`${todayStr}T00:00:00Z`);
+    pengumumanItems = (pengumumanRows || []).map((row: any) => {
+      const tanggalUtc = Date.parse(`${row.tanggal}T00:00:00Z`);
+      return {
+        id: row.id,
+        judul: row.judul,
+        isi: row.isi,
+        // Lampiran ditulis dashboard-hris ke folder upload bersama (LEGACY_UPLOAD_DIR/pengumuman).
+        lampiranUrl: row.lampiran ? `/api/uploads/pengumuman/${encodeURIComponent(row.lampiran)}` : null,
+        lampiranIsImage: /\.(jpe?g|png|webp)$/i.test(String(row.lampiran || '')),
+        tanggalLabel: format(new Date(`${row.tanggal}T00:00:00`), 'EEEE, dd MMMM yyyy', { locale: id }),
+        daysLeft: Math.round((tanggalUtc - todayUtc) / 86400000),
+      };
+    });
+  } catch (error) {
+    // Tabel/kolom belum dibuat oleh dashboard-hris — dashboard tetap jalan tanpa pengumuman.
+    console.error('Gagal memuat pengumuman_hc:', error);
+  }
+
   // Format ke bentuk Array prop untuk Timeline
   const timelineDays = Object.keys(timelineByDate)
     .sort((a, b) => b.localeCompare(a)) // Sort Descending
@@ -309,6 +340,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="lg:col-start-1 lg:row-start-3">
+          <Pengumuman items={pengumumanItems} />
           <Timeline
             isManager={isManager}
             days={timelineDays}
