@@ -15,7 +15,8 @@ import {
   Clock,
   ShieldCheck,
   ScanQrCode,
-  DoorOpen
+  DoorOpen,
+  AppWindow
 } from 'lucide-react';
 
 interface QuickMenuProps {
@@ -48,6 +49,15 @@ const baseMenuItems = [
     iconColor: 'text-blue-500',
     bgColor: 'bg-blue-50',
     href: '/riwayat_izin',
+  },
+  {
+    // SSO ke portal pengajuan aplikasi (FPA / FPA-A / FPM) di aplikasi Developer.
+    id: 'pengajuan_aplikasi',
+    label: 'Pengajuan Aplikasi',
+    icon: AppWindow,
+    iconColor: 'text-purple-500',
+    bgColor: 'bg-purple-50',
+    href: '/api/auth/sso-developer',
   },
   {
     id: 'pengajuan',
@@ -133,7 +143,9 @@ export default function QuickMenu({ isManager, pendingIzinCount, pendingLemburCo
     ...(isManager ? managerOnlyItems : []),
   ];
 
-  const isExternal = (href: string) => href.startsWith('http://') || href.startsWith('https://');
+  // Route SSO mengantar ke aplikasi lain: buka di tab baru seperti link eksternal, bukan popup.
+  const isExternal = (href: string) =>
+    href.startsWith('http://') || href.startsWith('https://') || href.startsWith('/api/auth/sso-');
 
   const handleClick = (e: React.MouseEvent, item: { href: string; label: string }) => {
     if (item.href === '#' || isExternal(item.href)) return;
@@ -158,6 +170,7 @@ export default function QuickMenu({ isManager, pendingIzinCount, pendingLemburCo
               key={item.id}
               href={item.href}
               onClick={(e) => handleClick(e, item)}
+              prefetch={isExternal(item.href) ? false : undefined}
               target={isExternal(item.href) ? '_blank' : undefined}
               rel={isExternal(item.href) ? 'noopener noreferrer' : undefined}
               className="flex flex-col items-center gap-2 group"

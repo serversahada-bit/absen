@@ -17,3 +17,17 @@ export async function createSsoToken(user: UserSession): Promise<string> {
     .setExpirationTime('60s')
     .sign(SSO_SECRET);
 }
+
+/**
+ * Token SSO untuk aplikasi Developer (portal Pengajuan Aplikasi). Kontrak di sisi Developer:
+ * aud "developer", jti unik (sekali pakai), dan user_id = karyawan.id. Memakai SSO_SECRET yang sama.
+ */
+export async function createDeveloperSsoToken(user: UserSession): Promise<string> {
+  return await new SignJWT({ user_id: user.user_id })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setAudience('developer')
+    .setJti(crypto.randomUUID())
+    .setIssuedAt()
+    .setExpirationTime('60s')
+    .sign(SSO_SECRET);
+}
