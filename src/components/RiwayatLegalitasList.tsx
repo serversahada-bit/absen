@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { ExternalLink, FileText, CheckCircle2, XCircle, Loader2, Download } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ExternalLink, FileText, CheckCircle2, XCircle, Loader2, Download, PenLine, UploadCloud } from 'lucide-react';
 import SearchInput, { SearchEmptyState } from '@/components/SearchInput';
 
 export type RiwayatLegalitasRow = {
@@ -14,10 +15,78 @@ export type RiwayatLegalitasRow = {
   catatan_admin: string | null;
   estimasi_hari: number | null;
   file_hasil: string | null;
+  catatan_revisi: string | null;
+  file_revisi: string | null;
+  jumlah_revisi: number;
 };
 
+// Form upload ulang PDF untuk pengajuan yang diminta revisi oleh HRD.
+function UploadRevisiForm({ legalitasId }: { legalitasId: number }) {
+  const router = useRouter();
+  const [fileName, setFileName] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    setError('');
+    try {
+      const formData = new FormData(e.currentTarget);
+      formData.set('legalitas_id', String(legalitasId));
+      const res = await fetch('/api/legalitas/revisi', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setError(data.error || 'Gagal mengirim revisi.');
+        return;
+      }
+      router.refresh();
+    } catch {
+      setError('Terjadi masalah koneksi. Silakan coba lagi.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
+      <label className="flex items-center gap-2.5 bg-white border border-dashed border-violet-300 rounded-xl px-3.5 py-3 cursor-pointer hover:bg-violet-50/50 transition">
+        <UploadCloud className="w-4 h-4 text-violet-500 shrink-0" />
+        <span className={`text-[12px] font-semibold truncate ${fileName ? 'text-slate-700' : 'text-slate-400'}`}>
+          {fileName || 'Pilih PDF hasil revisi (maks 5MB)'}
+        </span>
+        <input
+          type="file"
+          name="file_pdf"
+          accept="application/pdf"
+          required
+          className="hidden"
+          onChange={(e) => setFileName(e.target.files?.[0]?.name ?? '')}
+        />
+      </label>
+      {error && <div className="text-[11px] font-bold text-rose-600">{error}</div>}
+      <button
+        type="submit"
+        disabled={isSubmitting || !fileName}
+        className="text-[11px] font-black text-white tracking-wide flex items-center justify-center gap-1.5 bg-violet-600 border border-violet-600 px-4 py-2.5 rounded-xl hover:bg-violet-700 transition-all active:scale-95 w-full disabled:opacity-50 disabled:active:scale-100"
+      >
+        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
+        {isSubmitting ? 'MENGIRIM...' : 'KIRIM HASIL REVISI'}
+      </button>
+    </form>
+  );
+}
+
 function StatusBadge({ status }: { status: string }) {
-  if (status === 'Diproses') {
+  if (status === 'Revisi') {
+    return (
+      <span className="bg-violet-100 text-violet-700 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wide border border-violet-200 flex items-center gap-1 shadow-sm">
+        <PenLine className="w-3 h-3" /> PERLU REVISI
+      </span>
+    );
+  } else if (status === 'Diproses') {
     return (
       <span className="bg-sky-100 text-sky-700 px-3 py-1.5 rounded-full text-[10px] font-black tracking-wide border border-sky-200 flex items-center gap-1.5 shadow-sm">
         <Loader2 className="w-3 h-3 animate-spin" /> DIPROSES
@@ -109,6 +178,32 @@ export default function RiwayatLegalitasList({ rows }: { rows: RiwayatLegalitasR
                 </div>
               )}
 
+              {row.status === 'Revisi' && (
+                <div className="bg-violet-50 border border-violet-100 text-violet-700 rounded-2xl p-3.5 text-[12px] leading-relaxed relative overflow-hidden flex flex-col gap-3">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-violet-400" />
+                  <div>
+                    <div className="font-black mb-1 uppercase tracking-wider text-[10px]">Catatan Revisi dari HRD</div>
+                    <div className="font-medium whitespace-pre-wrap">{row.catatan_revisi || '-'}</div>
+                  </div>
+                  {row.file_revisi && (
+                    <a href={`/api/uploads/legalitas_revisi/${row.file_revisi}`} target="_blank" rel="noreferrer"
+                      className="text-[11px] font-black text-violet-700 tracking-wide flex items-center justify-center gap-1.5 bg-white border border-violet-200 px-4 py-2.5 rounded-xl hover:bg-violet-100 transition-all active:scale-95 w-full">
+                      <Download className="w-4 h-4" />
+                      LIHAT LAMPIRAN REVISI
+                    </a>
+                  )}
+                  <UploadRevisiForm legalitasId={row.id} />
+                </div>
+              )}
+
+              {(row.status || 'Pending') === 'Pending' && row.jumlah_revisi > 0 && (
+                <div className="bg-amber-50 border border-amber-100 text-amber-700 rounded-2xl p-3.5 text-[12px] leading-relaxed relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-amber-400" />
+                  <div className="font-black mb-1 uppercase tracking-wider text-[10px]">Revisi Terkirim</div>
+                  <div className="font-medium">Hasil revisi Anda sudah dikirim dan menunggu dicek ulang oleh HRD.</div>
+                </div>
+              )}
+
               {row.status === 'Diproses' && (
                 <div className="bg-sky-50 border border-sky-100 text-sky-700 rounded-2xl p-3.5 text-[12px] leading-relaxed relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1 h-full bg-sky-400" />
@@ -120,7 +215,7 @@ export default function RiwayatLegalitasList({ rows }: { rows: RiwayatLegalitasR
               )}
 
               {row.status === 'Selesai' && row.file_hasil && (
-                <a href={`/uploads/legalitas_hasil/${row.file_hasil}`} target="_blank" rel="noreferrer"
+                <a href={`/api/uploads/legalitas_hasil/${row.file_hasil}`} target="_blank" rel="noreferrer"
                   className="text-[11px] font-black text-white tracking-wide flex items-center justify-center gap-1.5 bg-emerald-600 border border-emerald-600 px-4 py-2.5 rounded-xl hover:bg-emerald-700 transition-all active:scale-95 w-full">
                   <Download className="w-4 h-4" />
                   DOWNLOAD HASIL LEGALISASI

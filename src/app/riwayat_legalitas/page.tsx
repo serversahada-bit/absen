@@ -33,7 +33,8 @@ export default async function RiwayatLegalitasPage() {
   try {
     rows = await query(
       `SELECT id, jenis_dokumen, keterangan, file_pdf, status, created_at, catatan_admin,
-              estimasi_hari, diproses_at, file_hasil, selesai_at
+              estimasi_hari, diproses_at, file_hasil, selesai_at,
+              catatan_revisi, file_revisi, jumlah_revisi
        FROM pengajuan_legalitas
        WHERE karyawan_id = ?
        ORDER BY created_at DESC`,
@@ -53,6 +54,9 @@ export default async function RiwayatLegalitasPage() {
     catatan_admin: row.catatan_admin,
     estimasi_hari: row.estimasi_hari,
     file_hasil: row.file_hasil,
+    catatan_revisi: row.catatan_revisi,
+    file_revisi: row.file_revisi,
+    jumlah_revisi: Number(row.jumlah_revisi ?? 0),
   }));
 
   return (

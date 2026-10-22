@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import TopNav from '@/components/dashboard/TopNav';
 import BottomNav from '@/components/dashboard/BottomNav';
 import { NavModalProvider } from '@/components/NavModalContext';
+import { isInsideNavPopup } from '@/lib/embed';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -17,7 +18,7 @@ export default function AppShell({ children, maxWidth = 'lg:max-w-3xl' }: AppShe
   const [isEmbedded, setIsEmbedded] = useState(false);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('embed') === '1') {
+    if (isInsideNavPopup()) {
       setIsEmbedded(true);
     }
   }, []);
