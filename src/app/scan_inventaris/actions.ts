@@ -9,6 +9,8 @@ export type AsetScanResult = {
   kategori: string;
   merk: string | null;
   deskripsi: string | null;
+  penanggung_jawab: string | null;
+  foto_url: string | null;
 };
 
 type LookupResult =
@@ -44,11 +46,11 @@ export async function lookupAsetByKode(kodeSistem: string): Promise<LookupResult
 
     const rows: any = asetId !== null
       ? await query(
-          'SELECT nama_aset, kode_aset, kategori, merk, deskripsi FROM aset_kantor WHERE id = ? LIMIT 1',
+          'SELECT nama_aset, kode_aset, kategori, merk, deskripsi, penanggung_jawab, foto FROM aset_kantor WHERE id = ? LIMIT 1',
           [asetId]
         )
       : await query(
-          'SELECT nama_aset, kode_aset, kategori, merk, deskripsi FROM aset_kantor WHERE kode_sistem = ? LIMIT 1',
+          'SELECT nama_aset, kode_aset, kategori, merk, deskripsi, penanggung_jawab, foto FROM aset_kantor WHERE kode_sistem = ? LIMIT 1',
           [kode]
         );
 
@@ -65,6 +67,8 @@ export async function lookupAsetByKode(kodeSistem: string): Promise<LookupResult
         kategori: row.kategori,
         merk: row.merk,
         deskripsi: row.deskripsi,
+        penanggung_jawab: row.penanggung_jawab,
+        foto_url: row.foto ? `/api/aset-foto/${encodeURIComponent(row.foto)}` : null,
       },
     };
   } catch (err) {

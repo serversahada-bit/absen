@@ -45,6 +45,8 @@ export default function ScanInventarisClient() {
   const [status, setStatus] = useState<Status>('starting');
   const [errorMessage, setErrorMessage] = useState('');
   const [aset, setAset] = useState<AsetScanResult | null>(null);
+  // Foto gagal dimuat (file tidak ada di ASET_UPLOAD_DIR) -> sembunyikan, jangan tampil ikon rusak.
+  const [fotoError, setFotoError] = useState(false);
   const [cameras, setCameras] = useState<QrScanner.Camera[]>([]);
   const [activeCamera, setActiveCamera] = useState<QrScanner.Camera | null>(null);
   const [switching, setSwitching] = useState(false);
@@ -56,6 +58,7 @@ export default function ScanInventarisClient() {
     try {
       const res = await lookupAsetByKode(kode);
       if (res.ok) {
+        setFotoError(false);
         setAset(res.aset);
         setStatus('result');
       } else {
@@ -254,6 +257,16 @@ export default function ScanInventarisClient() {
 
       {status === 'result' && aset && (
         <div className="bg-white rounded-[24px] border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-5">
+          {aset.foto_url && !fotoError && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={aset.foto_url}
+              alt={aset.nama_aset}
+              onError={() => setFotoError(true)}
+              className="w-full max-h-64 object-contain rounded-2xl bg-slate-50 border border-slate-100 mb-4"
+            />
+          )}
+
           <div className="flex items-start gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center shrink-0">
               <PackageSearch className="w-5 h-5 text-violet-500" strokeWidth={2} />
@@ -272,6 +285,10 @@ export default function ScanInventarisClient() {
             <div className="flex justify-between gap-3 border-b border-slate-50 pb-2">
               <dt className="text-slate-400 font-semibold">Merk</dt>
               <dd className="text-slate-800 font-bold text-right">{aset.merk || '-'}</dd>
+            </div>
+            <div className="flex justify-between gap-3 border-b border-slate-50 pb-2">
+              <dt className="text-slate-400 font-semibold">Penanggung Jawab</dt>
+              <dd className="text-slate-800 font-bold text-right">{aset.penanggung_jawab || '-'}</dd>
             </div>
             <div>
               <dt className="text-slate-400 font-semibold mb-1">Deskripsi</dt>
