@@ -1,23 +1,26 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { isNavPopupRootPage } from '@/lib/embed';
 
 /**
  * Wraps a page's own "back" control (icon button, link, whatever markup the
- * page already uses) and hides it when the page is loaded inside the desktop
- * QuickMenu popup (NavModal renders pages in an iframe with `?embed=1`) — the
- * popup already has its own close (X) affordance, so an in-page back button
- * there is redundant and just navigates the iframe in place.
+ * page already uses) and hides it on the first page of the desktop QuickMenu
+ * popup (NavModal renders pages in an iframe) — the popup already has its own
+ * close (X) affordance there, and the back target (usually /dashboard) can't
+ * be shown inside the popup. On follow-up pages inside the popup (e.g. Ajukan
+ * Legalitas opened from Riwayat Legalitas) the back control stays, since it
+ * returns to the previous page within the popup.
  */
 export default function BackLink({ children }: { children: React.ReactNode }) {
-  const [isEmbedded, setIsEmbedded] = useState(false);
+  const pathname = usePathname();
+  const [isPopupRoot, setIsPopupRoot] = useState(false);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('embed') === '1') {
-      setIsEmbedded(true);
-    }
-  }, []);
+    setIsPopupRoot(isNavPopupRootPage(pathname));
+  }, [pathname]);
 
-  if (isEmbedded) return null;
+  if (isPopupRoot) return null;
   return <>{children}</>;
 }
