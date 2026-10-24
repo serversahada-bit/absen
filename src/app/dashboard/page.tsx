@@ -241,7 +241,7 @@ export default async function DashboardPage() {
   let pengumumanItems: PengumumanItem[] = [];
   try {
     const pengumumanRows: any = await query(`
-      SELECT id, judul, isi, lampiran, DATE_FORMAT(tanggal_pelaksanaan, '%Y-%m-%d') AS tanggal
+      SELECT id, judul, isi, lampiran, DATE_FORMAT(tanggal_pelaksanaan, '%Y-%m-%d') AS tanggal, is_penting
       FROM pengumuman_hc
       WHERE tanggal_pelaksanaan >= ?
       ORDER BY tanggal_pelaksanaan ASC, id ASC
@@ -260,6 +260,7 @@ export default async function DashboardPage() {
         lampiranIsImage: /\.(jpe?g|png|webp)$/i.test(String(row.lampiran || '')),
         tanggalLabel: format(new Date(`${row.tanggal}T00:00:00`), 'EEEE, dd MMMM yyyy', { locale: id }),
         daysLeft: Math.round((tanggalUtc - todayUtc) / 86400000),
+        isPenting: Boolean(row.is_penting),
       };
     });
   } catch (error) {
