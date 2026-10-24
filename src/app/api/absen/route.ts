@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { nowJakarta, formatJakartaDate, formatJakartaTime, formatJakartaCompact } from '@/lib/time';
 import { PERSISTENT_UPLOAD_DIR } from '@/lib/uploadDir';
+import { adaPengumumanWajib } from '@/lib/pengumumanWajib';
 
 const MAX_BYTES = 2 * 1024 * 1024;
 
@@ -29,6 +30,18 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Pengumuman Penting dari HC wajib dibaca dulu (popup di dashboard) sebelum bisa absen.
+    if (await adaPengumumanWajib(session.user_id)) {
+      return NextResponse.json(
+        {
+          success: false,
+          code: 'PENGUMUMAN_WAJIB',
+          error: 'Ada pengumuman penting yang wajib kamu baca dulu. Kamu akan diarahkan ke Dashboard untuk membacanya.',
+        },
+        { status: 403 }
+      );
+    }
+
     return await handleSubmit(request, session.user_id);
   } catch (error: any) {
     console.error('[Absen] Gagal memproses absen:', error);

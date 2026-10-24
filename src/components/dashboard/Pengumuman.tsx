@@ -11,6 +11,7 @@ export interface PengumumanItem {
   lampiranIsImage: boolean;
   tanggalLabel: string;
   daysLeft: number;
+  isPenting: boolean;
 }
 
 interface PengumumanProps {
@@ -54,7 +55,14 @@ function PengumumanCard({ item }: { item: PengumumanItem }) {
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center shrink-0">
             <Megaphone className="w-4 h-4 text-white" strokeWidth={2.2} />
           </div>
-          <span className="text-xs font-black text-slate-800 leading-snug">{item.judul}</span>
+          <div className="min-w-0">
+            {item.isPenting && (
+              <span className="inline-block mb-1 text-[9px] font-black text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                Penting
+              </span>
+            )}
+            <span className="block text-xs font-black text-slate-800 leading-snug">{item.judul}</span>
+          </div>
         </div>
         <span
           className={`shrink-0 text-[9px] font-black border px-2.5 py-1 rounded-full uppercase tracking-wider ${
