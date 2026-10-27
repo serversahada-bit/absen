@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { X, Camera, MapPin, AlertCircle, Focus, ScanFace } from 'lucide-react';
+import { X, Camera, MapPin, MapPinCheck, AlertCircle, TriangleAlert, Focus, ScanFace } from 'lucide-react';
+import type { KantorTerdekat } from '@/lib/kantor';
+
+const formatJarak = (meter: number) =>
+  meter < 1000 ? `${meter} m` : `${(meter / 1000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} km`;
 
 function AbsenContent() {
   const router = useRouter();
@@ -20,6 +24,7 @@ function AbsenContent() {
   const [isCapturing, setIsCapturing] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isLocReady, setIsLocReady] = useState(false);
+  const [kantor, setKantor] = useState<KantorTerdekat | null>(null);
 
   // 1. Dapatkan Lokasi GPS
   useEffect(() => {
@@ -41,6 +46,15 @@ function AbsenContent() {
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   }, []);
+
+  // 1b. Cek jarak ke kantor terdekat — hanya peringatan, absen tetap bisa dilakukan.
+  useEffect(() => {
+    if (!location) return;
+    fetch(`/api/absen/kantor?lokasi=${encodeURIComponent(location)}`)
+      .then((res) => res.json())
+      .then((data) => setKantor(data.success ? data.kantor : null))
+      .catch(() => setKantor(null));
+  }, [location]);
 
   // 2. Akses Kamera
   useEffect(() => {
@@ -191,7 +205,27 @@ function AbsenContent() {
 
       {/* Bottom Panel */}
       <div className="relative z-10 w-full px-5 pb-8 animate-fade-in-up">
-        
+
+        {/* Jarak ke kantor terdekat */}
+        {kantor && (kantor.diLuar ? (
+          <div className="mb-4 bg-amber-500/90 backdrop-blur-md rounded-2xl p-4 flex items-start gap-3 border border-amber-400 shadow-[0_10px_40px_rgba(245,158,11,0.4)]">
+            <TriangleAlert className="w-5 h-5 text-white shrink-0" />
+            <div>
+              <p className="text-xs font-black text-white">Anda di luar batas kantor</p>
+              <p className="text-xs font-semibold text-white/90 leading-relaxed mt-0.5">
+                {formatJarak(kantor.jarak)} dari {kantor.nama} (batas {kantor.radius} m). Absen tetap bisa dilakukan.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-4 bg-emerald-500/20 backdrop-blur-md rounded-2xl px-4 py-3 flex items-center gap-3 border border-emerald-500/50">
+            <MapPinCheck className="w-5 h-5 text-emerald-400 shrink-0" />
+            <p className="text-xs font-bold text-emerald-100">
+              Di area {kantor.nama} • {formatJarak(kantor.jarak)}
+            </p>
+          </div>
+        ))}
+
         {/* Error Toast */}
         {errorMsg && (
           <div className="mb-4 bg-rose-500/90 backdrop-blur-md rounded-2xl p-4 flex items-start gap-3 border border-rose-400 shadow-[0_10px_40px_rgba(225,29,72,0.4)]">
