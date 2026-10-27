@@ -7,6 +7,7 @@ import { query } from '@/lib/db';
 import { nowJakarta, formatJakartaDate, formatJakartaTime, formatJakartaCompact } from '@/lib/time';
 import { PERSISTENT_UPLOAD_DIR } from '@/lib/uploadDir';
 import { adaPengumumanWajib } from '@/lib/pengumumanWajib';
+import { cariKantorTerdekat, simpanJarakAbsen } from '@/lib/kantor';
 
 const MAX_BYTES = 2 * 1024 * 1024;
 
@@ -121,6 +122,7 @@ async function handleSubmit(request: Request, userId: number) {
          status = VALUES(status)`,
       [userId, tanggal, jamNow, lokasi, fileRel, statusMasuk]
     );
+    await simpanJarakAbsen(userId, tanggal, 'masuk', await cariKantorTerdekat(lokasi));
 
     return NextResponse.json({
       success: true,
@@ -144,6 +146,7 @@ async function handleSubmit(request: Request, userId: number) {
     'UPDATE presensi SET jam_pulang = ?, lokasi_pulang = ?, foto_pulang = ? WHERE karyawan_id = ? AND tanggal = ?',
     [jamNow, lokasi, fileRel, userId, tanggal]
   );
+  await simpanJarakAbsen(userId, tanggal, 'pulang', await cariKantorTerdekat(lokasi));
 
   return NextResponse.json({
     success: true,
