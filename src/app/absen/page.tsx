@@ -139,7 +139,7 @@ function AbsenContent() {
         setErrorMsg(data.error || 'Absen gagal, silakan coba lagi.');
         setStatusMsg('Face ID Siap');
         setIsCapturing(false);
-        if (data.code === 'PENGUMUMAN_WAJIB') {
+        if (data.code === 'PENGUMUMAN_WAJIB' || data.code === 'PERATURAN_WAJIB') {
           setTimeout(() => router.push('/dashboard'), 2000);
         }
         return;
