@@ -7,6 +7,7 @@ import { query } from '@/lib/db';
 import { nowJakarta, formatJakartaDate, formatJakartaTime, formatJakartaCompact } from '@/lib/time';
 import { PERSISTENT_UPLOAD_DIR } from '@/lib/uploadDir';
 import { adaPengumumanWajib } from '@/lib/pengumumanWajib';
+import { adaPeraturanWajib } from '@/lib/peraturanWajib';
 import { cariKantorTerdekat, simpanJarakAbsen } from '@/lib/kantor';
 
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -38,6 +39,18 @@ export async function POST(request: Request) {
           success: false,
           code: 'PENGUMUMAN_WAJIB',
           error: 'Ada pengumuman penting yang wajib kamu baca dulu. Kamu akan diarahkan ke Dashboard untuk membacanya.',
+        },
+        { status: 403 }
+      );
+    }
+
+    // Dokumen Peraturan Perusahaan yang baru terbit (batch jam 15:00) juga wajib dibaca dulu.
+    if (await adaPeraturanWajib(session.user_id)) {
+      return NextResponse.json(
+        {
+          success: false,
+          code: 'PERATURAN_WAJIB',
+          error: 'Ada dokumen baru di Peraturan Perusahaan yang wajib kamu baca dulu. Kamu akan diarahkan ke Dashboard untuk membacanya.',
         },
         { status: 403 }
       );

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { ArrowLeft, FileText, Library, Plus } from 'lucide-react';
 import { getSession } from '@/lib/auth';
 import { query } from '@/lib/db';
+import { formatInstantJakartaDb } from '@/lib/time';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import AppShell from '@/components/AppShell';
@@ -44,17 +45,20 @@ export default async function PeraturanPage({
 
   let rows: any;
   try {
+    // Dokumen baru dari HC baru tampil setelah terbit (batch jam 15:00 WIB); terbit_at NULL = dokumen lama.
     rows = await query(
       `SELECT p.id, p.judul, p.file, p.uploaded_at, k.nama AS pengaju_nama, k.organisasi AS pengaju_divisi
        FROM peraturan_perusahaan p
        LEFT JOIN pengajuan_peraturan pp ON pp.peraturan_id = p.id
        LEFT JOIN karyawan k ON k.id = pp.karyawan_id
-       ${where}
-       ORDER BY p.uploaded_at DESC, p.id DESC`
+       ${where} AND (p.terbit_at IS NULL OR p.terbit_at <= ?)
+       ORDER BY p.uploaded_at DESC, p.id DESC`,
+      [formatInstantJakartaDb()]
     );
   } catch (e) {
-    // Tabel pengajuan_peraturan belum dibuat (dibuat otomatis saat halaman
-    // Peraturan Perusahaan di dashboard-hris dibuka): tampilkan daftar tanpa info pengaju.
+    // Tabel pengajuan_peraturan / kolom terbit_at belum dibuat (dibuat otomatis saat halaman
+    // Peraturan Perusahaan di dashboard-hris dibuka): tampilkan daftar tanpa info pengaju. Tanpa
+    // kolom terbit_at belum ada dokumen terjadwal, jadi aman tanpa filter terbit.
     console.error('Gagal membaca pengaju peraturan, fallback tanpa info pengaju:', e);
     rows = await query(
       `SELECT p.id, p.judul, p.file, p.uploaded_at
